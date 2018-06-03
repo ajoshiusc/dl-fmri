@@ -5,7 +5,8 @@ Created on Sun Jun  3 00:16:45 2018
 
 @author: ajoshi
 """
-
+import numpy as np
+import scipy as sp
 
 # Define cognitive predictor regressor
 # This takes fMRI grayordinate data as input and cognitive scores as output
@@ -17,8 +18,18 @@ class CogPredictor:
         sqr_left = readdfs(bfp_path)
         sqr_right = readdfs()
 
+    def map_gord2sqrs(self, gord_data, sqr_size):
+        X, Y = sp.meshgrid(range(sqr_size), range(sqr_size))
+        left_data = 
+        interp
+
     def fit(self, X, y):
-        print(str11)
+        # X: data in grayordinates of shape Vert x Time x Subj
+        # y: cognitive scores
+        print('Fitting the model')
+        u_net = get_nn()
 
     def predict(str1):
         print(str1)
+
+    def get_NN():
