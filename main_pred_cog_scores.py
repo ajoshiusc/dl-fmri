@@ -8,7 +8,7 @@ Created on Sun Jun  3 00:09:21 2018
 
 #||AUM||
 #||Shree Ganeshaya Namaha||
-import fMRIlearn.CogPredictor as cp
+import fMRIlearn.cog_predictor as cp
 
 def main():
     # Set name of Shark object
