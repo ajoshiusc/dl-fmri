@@ -7,20 +7,21 @@ Created on Sun Jun  3 00:16:45 2018
 """
 import numpy as np
 import scipy as sp
+from scipy.io import loadmat
 from sklearn.base import BaseEstimator
-import scipy.interpolate.griddata as griddata
+from scipy.interpolate import griddata
 import os
 
 
 # Define cognitive predictor regressor
 # This takes fMRI grayordinate data as input and cognitive scores as output
-class CogPredictor(BaseEstimator, bfp_dir):
+class CogPred(BaseEstimator):
     sqrmap = 0
 
-    def __init__(self, bfp_path):
+    def __init__(self, bfp_dir):
         print("Reading flat maps for left and right hemispheres.")
         # read the flat maps for both hemispheres
-        dat = sp.io.loadmat(os.path.join(bfp_dir))
+        dat = loadmat(os.path.join(bfp_dir))
         self.sqrmap = dat['sqrmap']
 
 # This function maps grayordinate data to square
@@ -48,3 +49,5 @@ class CogPredictor(BaseEstimator, bfp_dir):
         print(str1)
 
     def get_NN():
+        pass
+# fdfdh
