@@ -8,25 +8,34 @@ Created on Sun Jun  3 00:16:45 2018
 import numpy as np
 import scipy as sp
 from sklearn.base import BaseEstimator
+import scipy.interpolate.griddata as griddata
+import os
+
 
 # Define cognitive predictor regressor
 # This takes fMRI grayordinate data as input and cognitive scores as output
-class CogPredictor(BaseEstimator, bfp_path):
+class CogPredictor(BaseEstimator, bfp_dir):
+    sqrmap = 0
 
     def __init__(self, bfp_path):
-
-        print("This is the constructor method.")
+        print("Reading flat maps for left and right hemispheres.")
         # read the flat maps for both hemispheres
-        self.sqr_left = readdfs(bfp_path)
-        self.sqr_right = readdfs()
+        dat = sp.io.loadmat(os.path.join(bfp_dir))
+        self.sqrmap = dat['sqrmap']
 
-    def map_gord2sqrs(self, gord_data, sqr_size):
+# This function maps grayordinate data to square
+# flat map flat map of 32k vertices, data: data defined on 32k vertices
+# sqr_size: size of the square
+    def map_gord2sqrs(self, data, sqr_size):
         X, Y = sp.meshgrid(np.linspace(-1.0, 1.0, sqr_size),
                            np.linspace(-1.0, 1.0, sqr_size))
-        for t in range(gord_data.shape(1)):
-            
-        left_data = 
-        interp
+
+        sqr_data = np.zeros((X.shape(0), X.shape(1), gord_data.shape[1]))
+
+        for t in np.arange(data.shape[1]):
+            sqr_data[:, :, t] = griddata(self.sqrmap, data[:, t], (X, Y))
+
+        return sqr_data
 
     def fit(self, X, y):
         # X: data in grayordinates of shape Vert x Time x Subj
