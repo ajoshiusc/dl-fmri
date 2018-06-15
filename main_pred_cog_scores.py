@@ -11,10 +11,13 @@ Created on Sun Jun  3 00:09:21 2018
 import fMRIlearn.cog_predictor as cp
 
 def main():
-    # Set name of Shark object
+    """ Main script that calls the functions object"""
     bfp_path = '/home/ajoshi/coding_ground/bfp'
     cp1 = cp.CogPred(bfp_path)
- #   cp1.fit(gordfiledir)
+
+    hcprfMRI = read_HCP_rfMRI(HCPpath)
+    hcpCogscores = read_HCP_cogscores(xlspath)
+#   cp1.fit(gordfiledir)
 #    cp.predict('hello')
 
 if __name__ == "__main__":
