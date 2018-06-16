@@ -20,7 +20,7 @@ class HCPData():
         self.rfmri = 0
         self.cog_scores = 0
         self.hcp_dir = hcp_dir
-        self.subids = {}
+        self.subids = list()
         print("Read flat maps for left and right hemispheres.")
 
     def get_data(self):
@@ -36,8 +36,8 @@ class HCPData():
         for subid in dirlst:
             fname = os.path.join(self.hcp_dir, subid, 'MNINonLinear',
                                  'Results', 'rfMRI_REST1_LR',
-                                 'rfMRI_REST1_LR_Atlas_hp2000_clean.dtseries.nii')
-            if os.path.isfile(self.hcp_dir):
-                dat = loadmat(self.hcp_dir)
-                self.subids.join(subid)
+                                 'rfMRI_REST1_LR_Atlas_hp2000_clean.dtseries.mat')
+            if os.path.isfile(fname):
+                dat = loadmat(fname)
+                self.subids.append(subid)
                 print(self.subids)
