@@ -15,10 +15,11 @@ def main():
     """ Main script that calls the functions object"""
     bfp_path = '/home/ajoshi/coding_ground/bfp'
     data_dir = '/deneb_disk/ADHD_Peking_bfp'
-    xlspath = ''
+    csvfile = '/deneb_disk/ADHD_Peking_bfp/Peking_all_phenotypic.csv'
     cp1 = cp.CogPred(bfp_path)
-    hpc = rh.bfpData(data_dir)
-    hpc.read_fMRI()
+    fc = rh.bfpData()
+    fc.read_cog_scores(csvfile)
+    print(fc.get_cog_score(5669389))
 
 #    hcprfMRI = read_hcp_rfMRI(HCPpath)
 #    hcpCogscores = read_hcp_cogscores(xlspath)
