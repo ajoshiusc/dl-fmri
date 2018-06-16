@@ -8,6 +8,8 @@ Created on Sun Jun  3 00:16:45 2018
 
 import nilearn as nl
 import os
+import scipy as sp
+from scipy.io import loadmat
 
 
 class HCPData():
@@ -18,6 +20,7 @@ class HCPData():
         self.rfmri = 0
         self.cog_scores = 0
         self.hcp_dir = hcp_dir
+        self.subids = {}
         print("Read flat maps for left and right hemispheres.")
 
     def get_data(self):
@@ -25,11 +28,16 @@ class HCPData():
         self.read_fMRI()
     #    self.read_cog_scores(self.subids)
         return self.rfmri, self.cog_scores
-    
+
     def read_fMRI(self):
         """ Read fMRI data from disk """
         dirlst = os.listdir(self.hcp_dir)
 
         for subid in dirlst:
-            print(subid)
-
+            fname = os.path.join(self.hcp_dir, subid, 'MNINonLinear',
+                                 'Results', 'rfMRI_REST1_LR',
+                                 'rfMRI_REST1_LR_Atlas_hp2000_clean.dtseries.nii')
+            if os.path.isfile(self.hcp_dir):
+                dat = loadmat(self.hcp_dir)
+                self.subids.join(subid)
+                print(self.subids)
