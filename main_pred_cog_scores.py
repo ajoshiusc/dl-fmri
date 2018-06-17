@@ -18,6 +18,7 @@ def main():
     csvfile = '/deneb_disk/ADHD_Peking_bfp/Peking_all_phenotypic.csv'
     cp1 = cp.CogPred(bfp_path)
     fc = rh.bfpData()
+    fc.read_fMRI(data_dir)
     fc.read_cog_scores(csvfile)
     print(fc.get_cog_score(5669389))
 

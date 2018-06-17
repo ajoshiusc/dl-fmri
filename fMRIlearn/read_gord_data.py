@@ -32,6 +32,7 @@ class bfpData():
 
     def read_fMRI(self, data_dir):
         """ Read fMRI data from disk """
+        self.data_dir = data_dir
         dirlst = os.listdir(self.data_dir)
 
         for subfile in dirlst:
