@@ -8,6 +8,7 @@ Created on Sun Jun  3 00:16:45 2018
 
 import nilearn as nl
 import os
+import glob
 import scipy as sp
 from scipy.io import loadmat
 import pandas as pd
@@ -33,13 +34,19 @@ class bfpData():
     def read_fMRI(self, data_dir):
         """ Read fMRI data from disk """
         self.data_dir = data_dir
-        dirlst = os.listdir(self.data_dir)
+        dirlst = glob.glob(self.data_dir+'/*.mat')
 
+        fmri_dat = np.zeros((96000,len(dirlist)))
+        subno = 0
         for subfile in dirlst:
             subid = subfile.replace('_rest_bold.32k.GOrd.mat', '')
-            fname = os.path.join(self.data_dir, subfile )
+            subid = subid.replace(self.data_dir + '/', '')
+
+            fname = os.path.join(self.data_dir, subfile)
+
             if os.path.isfile(fname):
-                dat = loadmat(fname)
+                print('Reading '+ fname)
+                fmri_dat[,subno++] = loadmat(fname)['ftdata']
                 self.subids.append(subid)
                 print(subid, subfile)
 
