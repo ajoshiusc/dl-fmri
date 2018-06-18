@@ -36,12 +36,12 @@ class bfpData():
         dirlst = os.listdir(self.data_dir)
 
         for subfile in dirlst:
-            subid = subfile.strip('_rest_bold.32k.GOrd.mat')
+            subid = subfile.replace('_rest_bold.32k.GOrd.mat', '')
             fname = os.path.join(self.data_dir, subfile )
             if os.path.isfile(fname):
                 dat = loadmat(fname)
                 self.subids.append(subid)
-                print(self.subids)
+                print(subid, subfile)
 
     def read_cog_scores(self, cogscore_file):
         """ Read cognitive scores from csv file """
