@@ -30,23 +30,29 @@ class bfpData():
         self.read_fMRI(self,self.data_dir)
         self.read_cog_scores(self.subids)
         return self.rfmri, self.cog_scores
+    
+    def choose_rep_sub(self):
+        self.rep_subno = 0
 
-    def read_fMRI(self, data_dir):
+    def get_pca_basis(self):
+        """Get PCA basis function"""
+
+
+    def read_fMRI_sub_names(self, data_dir):
         """ Read fMRI data from disk """
         self.data_dir = data_dir
-        dirlst = glob.glob(self.data_dir+'/*.mat')
+        self.dirlst = glob.glob(self.data_dir+'/*.mat')
 
-        fmri_dat = np.zeros((96000,len(dirlist)))
+        self.nsub = len(dirlist)
+
         subno = 0
         for subfile in dirlst:
             subid = subfile.replace('_rest_bold.32k.GOrd.mat', '')
             subid = subid.replace(self.data_dir + '/', '')
 
-            fname = os.path.join(self.data_dir, subfile)
-
-            if os.path.isfile(fname):
-                print('Reading '+ fname)
-                fmri_dat[,subno++] = loadmat(fname)['ftdata']
+            if os.path.isfile(subfile):
+                print('Reading '+ subfile)
+#                fmri_dat[,subno] = loadmat(fname)['ftdata']
                 self.subids.append(subid)
                 print(subid, subfile)
 
