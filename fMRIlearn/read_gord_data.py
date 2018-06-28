@@ -32,7 +32,7 @@ class bfpData():
 
     def get_data(self):
         """get the rfMRI data"""
-        self.read_fMRI(self,self.data_dir)
+        self.read_fmri(self,self.data_dir)
         self.read_cog_scores(self.subids)
         return self.rfmri, self.cog_scores
     
@@ -41,7 +41,7 @@ class bfpData():
 
 
 
-    def read_fMRI(self, data_dir, reduce_dim=None, int_subid=1):
+    def read_fmri(self, data_dir, reduce_dim=None, int_subid=1):
         """ Read fMRI data from disk """
         """ If reduce_dim = None, no dimesionality reduction is performed"""
         self.data_dir = data_dir
