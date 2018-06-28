@@ -41,7 +41,7 @@ class bfpData():
 
 
 
-    def read_fMRI(self, data_dir, reduce_dim=None):
+    def read_fMRI(self, data_dir, reduce_dim=None, int_subid=1):
         """ Read fMRI data from disk """
         """ If reduce_dim = None, no dimesionality reduction is performed"""
         self.data_dir = data_dir
@@ -53,6 +53,8 @@ class bfpData():
         for subfile in self.dirlst:
             subid = subfile.replace('_rest_bold.32k.GOrd.mat', '')
             subid = subid.replace(self.data_dir + '/', '')
+            if int_subid:
+                subid = int(subid)
 
             if os.path.isfile(subfile):
                 print('Reading '+ subfile, 'subid = ' + subid)
@@ -72,6 +74,11 @@ class bfpData():
     def read_cog_scores(self, cogscore_file):
         """ Read cognitive scores from csv file """
         self.cog_scores = pd.read_csv(cogscore_file, index_col=0)
+
+        ''' If fMRI data exists for some subjects, then store their cognitive scores ''' 
+        for subid in self.subids:
+            self.cog_scores.append(self.get_cog_score(subid))
+
         print(self.cog_scores)
 
     def get_cog_score(self,subid):
