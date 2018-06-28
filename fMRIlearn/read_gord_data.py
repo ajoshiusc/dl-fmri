@@ -18,7 +18,7 @@ from fMRIlearn.brainsync import brainSync, normalizeData
 
 
 class bfpData():
-    """ This class manages HCP data"""
+    """ This class manages BFP data set"""
 
     def __init__(self):
         # initialization
@@ -77,11 +77,11 @@ class bfpData():
 
         ''' If fMRI data exists for some subjects, then store their cognitive scores ''' 
         for subid in self.subids:
-            self.cog_scores.append(self.get_cog_score(subid))
+            self.cog_scores.append(self.get_cog_score_subid(subid))
 
         print(self.cog_scores)
 
-    def get_cog_score(self,subid):
+    def get_cog_score_subid(self,subid):
         """ Get cognitive score for a given subject id"""
         return self.cog_scores.loc[subid]
 

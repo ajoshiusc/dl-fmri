@@ -23,7 +23,7 @@ cog_pred = cp.CogPred(bfp_data)
 bd = rh.bfpData()
 bd.read_fmri(data_dir, reduce_dim=21)
 bd.read_cog_scores(csv_file)
-print(bd.get_cog_score(5669389))
+
 
 #    hcprfMRI = read_hcp_rfMRI(HCPpath)
 #    hcpCogscores = read_hcp_cogscores(xlspath)
