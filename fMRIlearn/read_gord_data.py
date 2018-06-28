@@ -12,6 +12,8 @@ import glob
 import scipy as sp
 from scipy.io import loadmat
 import pandas as pd
+from sklearn.decomposition import PCA
+from sklearn.preprocessing import StandardScaler
 
 
 class bfpData():
@@ -23,6 +25,7 @@ class bfpData():
         self.cog_scores = 0
         self.data_dir = ""
         self.subids = list()
+        self.data = list()
         self.dirlst = list()
         print("Read flat maps for left and right hemispheres.")
 
@@ -37,11 +40,14 @@ class bfpData():
 
 
 
-    def read_fMRI(self, data_dir, reduce_dim = None):
+    def read_fMRI(self, data_dir, reduce_dim=None):
         """ Read fMRI data from disk """
         """ If reduce_dim = None, no dimesionality reduction is performed"""
         self.data_dir = data_dir
         self.dirlst = glob.glob(self.data_dir+'/*.mat')
+
+        if reduce_dim != None :
+            pca = PCA(n_components=reduce_dim)
 
         for subfile in self.dirlst:
             subid = subfile.replace('_rest_bold.32k.GOrd.mat', '')
@@ -49,8 +55,12 @@ class bfpData():
 
             if os.path.isfile(subfile):
                 print('Reading '+ subfile, 'subid = ' + subid)
-                fmri_dat = loadmat(subfile) #['ftdata']
+                fmri_data = loadmat(subfile)['dtseries']
+                if reduce_dim != None:
+                    fmri_data = pca.fit_transform(fmri_data)
+
                 self.subids.append(subid)
+                self.data.append(fmri_data)
 #               print(subid, subfile)
 
 
