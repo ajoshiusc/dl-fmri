@@ -14,6 +14,7 @@ from scipy.io import loadmat
 import pandas as pd
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
+from fMRIlearn.brainsync import brainSync, normalizeData
 
 
 class bfpData():
@@ -55,7 +56,10 @@ class bfpData():
 
             if os.path.isfile(subfile):
                 print('Reading '+ subfile, 'subid = ' + subid)
-                fmri_data = loadmat(subfile)['dtseries']
+ me                fmri_data = loadmat(subfile)['dtseries']
+                fmri_data, _, _ = normalizeData(fmri_data.T)
+                fmri_data = fmri_data.T
+                
                 if reduce_dim != None:
                     fmri_data = pca.fit_transform(fmri_data)
 
