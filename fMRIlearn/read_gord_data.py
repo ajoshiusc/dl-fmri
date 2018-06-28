@@ -56,7 +56,7 @@ class bfpData():
 
             if os.path.isfile(subfile):
                 print('Reading '+ subfile, 'subid = ' + subid)
- me                fmri_data = loadmat(subfile)['dtseries']
+                fmri_data = loadmat(subfile)['dtseries']
                 fmri_data, _, _ = normalizeData(fmri_data.T)
                 fmri_data = fmri_data.T
                 
