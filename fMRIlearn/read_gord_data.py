@@ -23,6 +23,7 @@ class bfpData():
         self.cog_scores = 0
         self.data_dir = ""
         self.subids = list()
+        self.dirlst = list()
         print("Read flat maps for left and right hemispheres.")
 
     def get_data(self):
@@ -34,27 +35,25 @@ class bfpData():
     def choose_rep_sub(self):
         self.rep_subno = 0
 
-    def get_pca_basis(self):
-        """Get PCA basis function"""
 
 
-    def read_fMRI_sub_names(self, data_dir):
+    def read_fMRI(self, data_dir, reduce_dim = None):
         """ Read fMRI data from disk """
+        """ If reduce_dim = None, no dimesionality reduction is performed"""
         self.data_dir = data_dir
         self.dirlst = glob.glob(self.data_dir+'/*.mat')
 
-        self.nsub = len(dirlist)
-
-        subno = 0
-        for subfile in dirlst:
+        for subfile in self.dirlst:
             subid = subfile.replace('_rest_bold.32k.GOrd.mat', '')
             subid = subid.replace(self.data_dir + '/', '')
 
             if os.path.isfile(subfile):
-                print('Reading '+ subfile)
-#                fmri_dat[,subno] = loadmat(fname)['ftdata']
+                print('Reading '+ subfile, 'subid = ' + subid)
+                fmri_dat = loadmat(subfile) #['ftdata']
                 self.subids.append(subid)
-                print(subid, subfile)
+#               print(subid, subfile)
+
+
 
     def read_cog_scores(self, cogscore_file):
         """ Read cognitive scores from csv file """
