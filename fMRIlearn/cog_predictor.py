@@ -48,7 +48,7 @@ class CogPred(BaseEstimator):
             rh_data = data[nvert_hemi:2*nvert_hemi, t_ind]
             sqr_data_right[:, :, t_ind] = griddata(self.sqrmap, rh_data, (x_ind, y_ind))
            
-            print(t_ind,)
+            print(str(t_ind) + ',', end='')
 
         noncortical_data = data[2*nvert_hemi:, ]
         return sqr_data_left, sqr_data_right, noncortical_data
