@@ -32,9 +32,7 @@ class bfpData():
 
     def get_data(self):
         """get the rfMRI data"""
-        self.read_fmri(self,self.data_dir)
-        self.read_cog_scores(self.subids)
-        return self.rfmri, self.cog_scores
+        return self.data, self.cog_scores, self.subids
     
     def choose_rep_sub(self):
         self.rep_subno = 0
@@ -57,7 +55,7 @@ class bfpData():
                 subid = int(subid)
 
             if os.path.isfile(subfile):
-                print('Reading '+ subfile, 'subid = ' + subid)
+                print('Reading '+ subfile, 'subid = ' + str(subid))
                 fmri_data = loadmat(subfile)['dtseries']
                 fmri_data, _, _ = normalizeData(fmri_data.T)
                 fmri_data = fmri_data.T
