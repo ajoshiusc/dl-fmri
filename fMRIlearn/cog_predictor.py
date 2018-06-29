@@ -58,12 +58,13 @@ class CogPred(BaseEstimator):
             y: cognitive scores"""
         self.map_gord2sqrs(X)
         print('Fitting the model')
-        u_net = get_nn()
+        u_net = self.get_neural_net()
 
     def predict(self, str1):
         print(str1)
 
     def get_neural_net(self):
+        
         pass
 
    
