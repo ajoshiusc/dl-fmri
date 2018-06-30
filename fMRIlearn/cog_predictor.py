@@ -119,6 +119,7 @@ class CogPred(BaseEstimator, bfpData):
         conv5 = Conv2D(512, (3, 3), activation='relu', padding='same')(pool4)
         conv5 = Conv2D(512, (3, 3), activation='relu', padding='same')(conv5)
         flat1 = Flatten()(conv5)
+        flat1 = concatenate([flat1, d1_ip])
         d1= Dense(512,activation='relu')(flat1, d1_ip)
         d2= Dense(64,activation='relu')(d1)
 
