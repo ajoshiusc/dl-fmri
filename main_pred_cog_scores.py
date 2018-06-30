@@ -8,8 +8,8 @@ Created on Sun Jun  3 00:09:21 2018
 
 #||AUM||
 #||Shree Ganeshaya Namaha||
-import fMRIlearn.cog_predictor as cp
-import fMRIlearn.read_gord_data as rh
+import fMRIlearn.cog_predictor as cpred
+#import fMRIlearn.read_gord_data as rh
 
 # def main():
 """ Main script that calls the functions object"""
@@ -17,17 +17,16 @@ bfp_dir = '/home/ajoshi/coding_ground/bfp'
 data_dir = '/deneb_disk/temp1'
 csv_file = '/deneb_disk/temp1/Peking_all_phenotypic.csv'
 
-cgpred = cp.CogPred(bfp_dir)
+cp = cpred.CogPred(bfp_dir)
 
+cp.read_fmri(data_dir, reduce_dim=21)
+cp.read_cog_scores(csv_file)
 
-bd = rh.bfpData()
-bd.read_fmri(data_dir, reduce_dim=21)
-bd.read_cog_scores(csv_file)
+d, _, _ = cp.get_data()
+l = cp.map_gord2sqrs()
 
-d, _, _ = bd.get_data()
-lh, rh, subc = cgpred.map_gord2sqrs(d[1])
-
-print(bd)
+print(l)
+print(cp.nn_ipdata)
 #    hcprfMRI = read_hcp_rfMRI(HCPpath)
 #    hcpCogscores = read_hcp_cogscores(xlspath)
 #   cp1.fit(gordfiledir)
