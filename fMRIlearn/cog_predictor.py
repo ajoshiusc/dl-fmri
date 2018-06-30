@@ -11,6 +11,14 @@ from scipy.io import loadmat
 from scipy.interpolate import griddata
 from sklearn.base import BaseEstimator
 from fMRIlearn.read_gord_data import bfpData
+from keras.layers import Input,Conv2D,concatenate,MaxPooling2D,Flatten,Dense,Dropout
+from keras.models import Model
+from keras.callbacks import ModelCheckpoint
+from keras import backend as K
+from keras import losses
+
+K.set_image_data_format('channels_last')  # TF dimension ordering in this code
+
 
 # Define cognitive predictor regressor This takes fMRI grayordinate data as
 # input and cognitive scores as output
@@ -85,9 +93,43 @@ class CogPred(BaseEstimator, bfpData):
     def predict(self, str1):
         print(str1)
 
-    def get_neural_net(self):
+    def get_neural_net(self, isize=[256, 256]):
+        inputs = Input((isize[0], isize[1], 2))
+        conv1 = Conv2D(32, (3, 3), activation='relu', padding='same')(inputs)
+        conv1 = Conv2D(32, (3, 3), activation='relu', padding='same')(conv1)
+        pool1 = MaxPooling2D(pool_size=(2, 2))(conv1)
 
-        pass
+        conv2 = Conv2D(64, (3, 3), activation='relu', padding='same')(pool1)
+        conv2 = Conv2D(64, (3, 3), activation='relu', padding='same')(conv2)
+        pool2 = MaxPooling2D(pool_size=(2, 2))(conv2)
+
+        conv3 = Conv2D(128, (3, 3), activation='relu', padding='same')(pool2)
+        conv3 = Conv2D(128, (3, 3), activation='relu', padding='same')(conv3)
+        pool3 = MaxPooling2D(pool_size=(2, 2))(conv3)
+
+        conv4_1 = Conv2D(256, (3, 3), activation='relu', padding='same')(pool3)
+        conv4 = Conv2D(256, (3, 3), activation='relu', padding='same')(conv4_1)
+        conv4 = Conv2D(256, (3, 3), activation='relu', padding='same')(conv4)
+        pool4 = MaxPooling2D(pool_size=(2, 2))(conv4)
+
+        conv5 = Conv2D(512, (3, 3), activation='relu', padding='same')(pool4)
+        conv5 = Conv2D(512, (3, 3), activation='relu', padding='same')(conv5)
+        flat1 = Flatten()(conv5)
+        d1= Dense(512,activation='relu')(flat1)
+        d2= Dense(64,activation='relu')(d1)
+
+        out_theta = Dense(1)(d2)
+    #    conv_tx = Conv2D(1, (1, 1), activation=final_activation)(conv5)
+    #    conv_ty = Conv2D(1, (1, 1), activation=final_activation)(conv5)
+    #    conv_theta = Conv2D(1, (1, 1), activation='tanh')(conv5)
+
+    #    out_img = rotate(inputs,conv_theta)
+
+        model = Model(inputs=[inputs], outputs=out_theta)
+
+        model.compile(optimizer='adam', loss=losses.mean_squared_error, metrics=['mse'])
+
+        return model
 
 
 # fdfdh
