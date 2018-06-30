@@ -21,13 +21,13 @@ class CogPred(BaseEstimator):
 
     def __init__(self, bfp_dir):
         # read the flat maps for both hemispheres
-        dat = loadmat(os.path.join(bfp_dir,'supp_data','sqrmap.mat'))
+        dat = loadmat(os.path.join(bfp_dir, 'supp_data', 'sqrmap.mat'))
         self.sqrmap = dat['sqrmap']
-        self.sqr_map_ind = dat['data_ind'] - 1 #-1 for converting indices from matlab to python
+        # for converting indices from matlab to python, subtract -1
+        self.sqr_map_ind = dat['data_ind'] - 1
         self.sqr_map_ind = self.sqr_map_ind.squeeze()
         print("Read flat maps for left and right hemispheres.")
         self.nvert_hemi = 32492
-
 
     def map_gord2sqrs(self, data, sqr_size=256):
         """This function maps grayordinate data to square
@@ -40,15 +40,21 @@ class CogPred(BaseEstimator):
                                    np.linspace(-1.0+1e-6, 1.0-1e-6, sqr_size))
 
         print(x_ind.shape)
-        sqr_data_left = np.zeros((x_ind.shape[0], y_ind.shape[1], data.shape[1]))
-        sqr_data_right = np.zeros((x_ind.shape[0], y_ind.shape[1], data.shape[1]))
+        sqr_data_sz = (x_ind.shape[0], y_ind.shape[1], data.shape[1])
+        sqr_data_left = np.zeros(sqr_data_sz)
+        sqr_data_right = np.zeros(sqr_data_sz)
 
-        
         for t_ind in np.arange(data.shape[1]):
-            lh_data = data[:self.nvert_hemi, t_ind]
-            sqr_data_left[:, :, t_ind] = griddata(self.sqrmap, lh_data[self.sqr_map_ind], (x_ind, y_ind))
+            # Map Left Hemisphere data
+            lh_data = data[:self.nvert_hemi, t_ind][self.sqr_map_ind]
+            sqr_inds = (x_ind, y_ind)
+            sqr_data_left[:, :, t_ind] = griddata(self.sqrmap, lh_data,
+                                                  sqr_inds)
+            # Map Right Hemisphere data
             rh_data = data[self.nvert_hemi:2*self.nvert_hemi, t_ind]
-            sqr_data_right[:, :, t_ind] = griddata(self.sqrmap, rh_data[self.sqr_map_ind], (x_ind, y_ind))
+            rh_data = rh_data[self.sqr_map_ind]
+            sqr_data_right[:, :, t_ind] = griddata(self.sqrmap,
+                                                   rh_data, sqr_inds)
             print(str(t_ind) + ',', end='', flush=True)
 
         noncortical_data = data[2*self.nvert_hemi:, ]
