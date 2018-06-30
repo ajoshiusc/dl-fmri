@@ -57,8 +57,12 @@ class CogPred(BaseEstimator):
                                                    rh_data, sqr_inds)
             print(str(t_ind) + ',', end='', flush=True)
 
-        noncortical_data = data[2*self.nvert_hemi:, ]
+        noncortical_data = np.nan_to_num(data[2*self.nvert_hemi:, ])
+        sqr_data_left = np.nan_to_num(sqr_data_left)
+        sqr_data_right = np.nan_to_num(sqr_data_right)
+
         return sqr_data_left, sqr_data_right, noncortical_data
+
 
     def fit(self, X, y):
         """ X: data in grayordinates of shape Vert x Time x Subj
