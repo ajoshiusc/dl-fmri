@@ -19,6 +19,8 @@ csv_file = '/deneb_disk/temp1/Peking_all_phenotypic.csv'
 
 cp = cpred.CogPred(bfp_dir)
 
+nn = cp.get_neural_net()
+
 cp.read_fmri(data_dir, reduce_dim=21)
 cp.read_cog_scores(csv_file)
 

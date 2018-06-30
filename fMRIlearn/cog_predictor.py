@@ -88,16 +88,20 @@ class CogPred(BaseEstimator, bfpData):
             y: cognitive scores"""
         self.map_gord2sqrs(X)
         print('Fitting the model')
-        u_net = self.get_neural_net()
+        u_net = get_neural_net()
 
     def predict(self, str1):
         print(str1)
 
     def get_neural_net(self, isize=[256, 256]):
-        inputs = Input((isize[0], isize[1], 2))
-        conv1 = Conv2D(32, (3, 3), activation='relu', padding='same')(inputs)
-        conv1 = Conv2D(32, (3, 3), activation='relu', padding='same')(conv1)
+        input_lh = Input((isize[0], isize[1], 21))
+        input_rh = Input((isize[0], isize[1], 21))
+        sub_cort = Input((32492, 21))
+
+        conv1 = Conv2D(32, (3, 3), activation='relu', padding='same')(input_lh)
+        conv1 = Conv2D(32, (3, 3), activation='relu', padding='same')(input_rh)
         pool1 = MaxPooling2D(pool_size=(2, 2))(conv1)
+        d1_ip = Dense(512,activation='relu')(sub_cort)
 
         conv2 = Conv2D(64, (3, 3), activation='relu', padding='same')(pool1)
         conv2 = Conv2D(64, (3, 3), activation='relu', padding='same')(conv2)
@@ -115,7 +119,7 @@ class CogPred(BaseEstimator, bfpData):
         conv5 = Conv2D(512, (3, 3), activation='relu', padding='same')(pool4)
         conv5 = Conv2D(512, (3, 3), activation='relu', padding='same')(conv5)
         flat1 = Flatten()(conv5)
-        d1= Dense(512,activation='relu')(flat1)
+        d1= Dense(512,activation='relu')(flat1, d1_ip)
         d2= Dense(64,activation='relu')(d1)
 
         out_theta = Dense(1)(d2)
@@ -125,7 +129,7 @@ class CogPred(BaseEstimator, bfpData):
 
     #    out_img = rotate(inputs,conv_theta)
 
-        model = Model(inputs=[inputs], outputs=out_theta)
+        model = Model(inputs=[input_lh, input_rh, sub_cort], outputs=out_theta)
 
         model.compile(optimizer='adam', loss=losses.mean_squared_error, metrics=['mse'])
 
