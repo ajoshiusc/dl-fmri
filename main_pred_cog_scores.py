@@ -25,7 +25,7 @@ bd.read_fmri(data_dir, reduce_dim=21)
 bd.read_cog_scores(csv_file)
 
 d, _, _ = bd.get_data()
-cgpred.map_gord2sqrs(d[1])
+lh, rh, subc = cgpred.map_gord2sqrs(d[1])
 
 print(bd)
 #    hcprfMRI = read_hcp_rfMRI(HCPpath)

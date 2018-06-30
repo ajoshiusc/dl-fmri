@@ -23,8 +23,10 @@ class CogPred(BaseEstimator):
         # read the flat maps for both hemispheres
         dat = loadmat(os.path.join(bfp_dir,'supp_data','sqrmap.mat'))
         self.sqrmap = dat['sqrmap']
-        self.sqr_map_ind = dat['data_ind']
+        self.sqr_map_ind = dat['data_ind'] - 1 #-1 for converting indices from matlab to python
+        self.sqr_map_ind = self.sqr_map_ind.squeeze()
         print("Read flat maps for left and right hemispheres.")
+        self.nvert_hemi = 32492
 
 
     def map_gord2sqrs(self, data, sqr_size=256):
@@ -34,25 +36,24 @@ class CogPred(BaseEstimator):
         sqr_size: size of the square
         """
         print(sqr_size)
-        x_ind, y_ind = np.meshgrid(np.linspace(-1.0, 1.0, sqr_size),
-                                   np.linspace(-1.0, 1.0, sqr_size))
+        x_ind, y_ind = np.meshgrid(np.linspace(-1.0+1e-6, 1.0-1e-6, sqr_size),
+                                   np.linspace(-1.0+1e-6, 1.0-1e-6, sqr_size))
 
         print(x_ind.shape)
         sqr_data_left = np.zeros((x_ind.shape[0], y_ind.shape[1], data.shape[1]))
         sqr_data_right = np.zeros((x_ind.shape[0], y_ind.shape[1], data.shape[1]))
 
-        nvert_hemi = self.sqrmap.shape[0]
+        
         for t_ind in np.arange(data.shape[1]):
-            lh_data = data[:nvert_hemi, t_ind]
-            sqr_data_left[:, :, t_ind] = griddata(self.sqrmap, lh_data, (x_ind, y_ind))
-            rh_data = data[nvert_hemi:2*nvert_hemi, t_ind]
-            sqr_data_right[:, :, t_ind] = griddata(self.sqrmap, rh_data, (x_ind, y_ind))
-           
+            lh_data = data[:self.nvert_hemi, t_ind]
+            sqr_data_left[:, :, t_ind] = griddata(self.sqrmap, lh_data[self.sqr_map_ind], (x_ind, y_ind))
+            rh_data = data[self.nvert_hemi:2*self.nvert_hemi, t_ind]
+            sqr_data_right[:, :, t_ind] = griddata(self.sqrmap, rh_data[self.sqr_map_ind], (x_ind, y_ind))
             print(str(t_ind) + ',', end='', flush=True)
 
-        noncortical_data = data[2*nvert_hemi:, ]
+        noncortical_data = data[2*self.nvert_hemi:, ]
         return sqr_data_left, sqr_data_right, noncortical_data
-    
+
     def fit(self, X, y):
         """ X: data in grayordinates of shape Vert x Time x Subj
             y: cognitive scores"""
