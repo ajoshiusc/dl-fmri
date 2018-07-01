@@ -84,8 +84,8 @@ class CogPred(BaseEstimator, bfpData):
             u_net = self.get_neural_net()
             model_checkpoint = ModelCheckpoint('weights3d.h5', monitor='val_loss', save_best_only=True)
             
-            X = [sqr_data_left, sqr_data_right, noncortical_data]
-            X = X[:, :, :, None]
+            X = sqr_data_left[:, :, :, None] #, sqr_data_right[:,:,:,None], noncortical_data[:,:,None]]
+            
             y=11
             history = u_net.fit(X, y, batch_size=1, epochs=1, verbose=1,
                                 shuffle=True, validation_split=0.2,
@@ -110,15 +110,15 @@ class CogPred(BaseEstimator, bfpData):
 
     def get_neural_net(self, isize=[256, 256]):
         input_lh = Input((isize[0], isize[1], 21))
-        input_rh = Input((isize[0], isize[1], 21))
-        sub_cort = Input((32492, 21))
+#        input_rh = Input((isize[0], isize[1], 21))
+#        sub_cort = Input((32492, 21))
 
         conv1 = Conv2D(32, (3, 3), activation='relu', padding='same')(input_lh)
-        conv1 = Conv2D(32, (3, 3), activation='relu', padding='same')(input_rh)
+#        conv1 = Conv2D(32, (3, 3), activation='relu', padding='same')(input_rh)
         pool1 = MaxPooling2D(pool_size=(2, 2))(conv1)
-        d1_ip = Dense(512,activation='relu')(sub_cort)
-        d1_ip = Flatten()(d1_ip)
-        d1_ip = Dense(1,activation='relu')(d1_ip)
+#        d1_ip = Dense(512,activation='relu')(sub_cort)
+#        d1_ip = Flatten()(d1_ip)
+#        d1_ip = Dense(1,activation='relu')(d1_ip)
 
         conv2 = Conv2D(64, (3, 3), activation='relu', padding='same')(pool1)
         conv2 = Conv2D(64, (3, 3), activation='relu', padding='same')(conv2)
@@ -139,7 +139,7 @@ class CogPred(BaseEstimator, bfpData):
         
         d1 = Dense(512, activation='relu')(flat1)
         d2 = Dense(1, activation='relu')(d1)
-        d2 = concatenate([d2, d1_ip], axis=-1)
+ #       d2 = concatenate([d2, d1_ip], axis=-1)
 
         out_theta = Dense(1)(d2)
     #    conv_tx = Conv2D(1, (1, 1), activation=final_activation)(conv5)
@@ -148,7 +148,9 @@ class CogPred(BaseEstimator, bfpData):
 
     #    out_img = rotate(inputs,conv_theta)
 
-        model = Model(inputs=[input_lh, input_rh, sub_cort], outputs=out_theta)
+#        model = Model(inputs=[input_lh, input_rh, sub_cort], outputs=out_theta)
+        model = Model(inputs=[input_lh], outputs=out_theta)
+
 
         model.compile(optimizer='adam', loss=losses.mean_squared_error, metrics=['mse'])
 
