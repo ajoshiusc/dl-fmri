@@ -84,9 +84,9 @@ class CogPred(BaseEstimator, bfpData):
             u_net = self.get_neural_net()
             model_checkpoint = ModelCheckpoint('weights3d.h5', monitor='val_loss', save_best_only=True)
             
-            X = [sqr_data_left[None, :, :, :]] #, sqr_data_right[:,:,:,None], noncortical_data[:,:,None]]
+            X = sqr_data_left[None, :, :, :] #, sqr_data_right[:,:,:,None], noncortical_data[:,:,None]]
             
-            y=11
+            y=np.array(11)
             history = u_net.fit(X, y, batch_size=1, epochs=1, verbose=1,
                                 shuffle=True, validation_split=0.2,
                                 callbacks=[model_checkpoint])
