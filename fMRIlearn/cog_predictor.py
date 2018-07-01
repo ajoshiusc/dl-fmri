@@ -81,14 +81,29 @@ class CogPred(BaseEstimator, bfpData):
             sqr_dat.noncortical_data = noncortical_data
             self.nn_ipdata.append(sqr_dat)
 
+            u_net = self.get_neural_net()
+            model_checkpoint = ModelCheckpoint('weights3d.h5', monitor='val_loss', save_best_only=True)
+            
+            X = [sqr_data_left, sqr_data_right, noncortical_data]
+            X = X[:, :, :, None]
+            y=11
+            history = u_net.fit(X, y, batch_size=1, epochs=1, verbose=1,
+                                shuffle=True, validation_split=0.2,
+                                callbacks=[model_checkpoint])
+
+
         return self.nn_ipdata
 
     def fit(self, X, y):
         """ X: data in grayordinates of shape Vert x Time x Subj
             y: cognitive scores"""
-        self.map_gord2sqrs(X)
+      #     self.map_gord2sqrs(X)
         print('Fitting the model')
-        u_net = get_neural_net()
+        u_net = self.get_neural_net()
+        history = u_net.fit(X, y, batch_size=5, epochs=5, verbose=1,
+                              shuffle=True, validation_split=0.2,
+                              callbacks=[model_checkpoint])
+
 
     def predict(self, str1):
         print(str1)
@@ -102,6 +117,8 @@ class CogPred(BaseEstimator, bfpData):
         conv1 = Conv2D(32, (3, 3), activation='relu', padding='same')(input_rh)
         pool1 = MaxPooling2D(pool_size=(2, 2))(conv1)
         d1_ip = Dense(512,activation='relu')(sub_cort)
+        d1_ip = Flatten()(d1_ip)
+        d1_ip = Dense(1,activation='relu')(d1_ip)
 
         conv2 = Conv2D(64, (3, 3), activation='relu', padding='same')(pool1)
         conv2 = Conv2D(64, (3, 3), activation='relu', padding='same')(conv2)
@@ -119,9 +136,10 @@ class CogPred(BaseEstimator, bfpData):
         conv5 = Conv2D(512, (3, 3), activation='relu', padding='same')(pool4)
         conv5 = Conv2D(512, (3, 3), activation='relu', padding='same')(conv5)
         flat1 = Flatten()(conv5)
-    #    flat1 = concatenate([flat1, d1_ip], axis=-1)
-        d1= Dense(512,activation='relu')(flat1, d1_ip)
-        d2= Dense(64,activation='relu')(d1)
+        
+        d1 = Dense(512, activation='relu')(flat1)
+        d2 = Dense(1, activation='relu')(d1)
+        d2 = concatenate([d2, d1_ip], axis=-1)
 
         out_theta = Dense(1)(d2)
     #    conv_tx = Conv2D(1, (1, 1), activation=final_activation)(conv5)
