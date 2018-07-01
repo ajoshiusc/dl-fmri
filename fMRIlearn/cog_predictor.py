@@ -86,7 +86,7 @@ class CogPred(BaseEstimator, bfpData):
             
             X = sqr_data_left[None, :, :, :] #, sqr_data_right[:,:,:,None], noncortical_data[:,:,None]]
             
-            y=np.array(11)
+            y=np.array(11).reshape((1,1))
             history = u_net.fit(X, y, batch_size=1, epochs=1, verbose=1,
                                 shuffle=True, validation_split=0.2,
                                 callbacks=[model_checkpoint])
