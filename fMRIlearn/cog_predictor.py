@@ -95,6 +95,10 @@ class CogPred(BaseEstimator, bfpData):
 #        y=np.array([11,12,13,14,15]).reshape((5,1))
         y = self.cog_scores['ADHD Index'][self.subids].get_values()[:, None]
 
+        X = X[y !=-999, :, :, :]
+        y = y[y !=-999, :, :, :]
+
+
         history = self.hybrid_cnn.fit(X, y, batch_size=5, epochs=20, verbose=1,
                             shuffle=True, validation_split=0.2,
                             callbacks=[model_checkpoint])

@@ -14,8 +14,8 @@ import fMRIlearn.cog_predictor as cpred
 # def main():
 """ Main script that calls the functions object"""
 bfp_dir = '/home/ajoshi/coding_ground/bfp'
-data_dir = '/deneb_disk/temp1'
-csv_file = '/deneb_disk/temp1/Peking_all_phenotypic.csv'
+data_dir = '/deneb_disk/ADHD_Peking_bfp'
+csv_file = '/deneb_disk/ADHD_Peking_bfp/Peking_all_phenotypic.csv'
 
 cp = cpred.CogPred(bfp_dir)
 
