@@ -24,6 +24,8 @@ class bfpData():
         # initialization
         self.rfmri = 0
         self.cog_scores = 0
+        self.nvert_hemi = 32492
+        self.nvert_subcort = 31870
         self.data_dir = ""
         self.subids = list()
         self.data = list()
