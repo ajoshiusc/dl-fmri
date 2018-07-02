@@ -23,17 +23,11 @@ nn = cp.get_neural_net()
 
 cp.read_fmri(data_dir, reduce_dim=21)
 cp.read_cog_scores(csv_file)
-
-#d, _, _ = cp.get_data()
-l = cp.map_gord2sqrs()
+cp.map_gord2sqrs()
 cp.train_model()
 
-print(l)
 print('Model Trained')
-#    hcprfMRI = read_hcp_rfMRI(HCPpath)
-#    hcpCogscores = read_hcp_cogscores(xlspath)
-#   cp1.fit(gordfiledir)
-#    cp.predict('hello')
+
 
 # if __name__ == "__main__":
 #    main()

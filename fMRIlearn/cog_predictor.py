@@ -87,7 +87,9 @@ class CogPred(BaseEstimator, bfpData):
         model_checkpoint = ModelCheckpoint('weights3d.h5', monitor='val_loss', save_best_only=True)
 
         X = self.nn_ipdata
-        y=np.array([11,12,13,14,15]).reshape((5,1))
+#        y=np.array([11,12,13,14,15]).reshape((5,1))
+        y=self.cog_scores['ADHD Index'][self.subids].get_values()
+
         history = self.hybrid_cnn.fit(X, y, batch_size=1, epochs=1, verbose=1,
                             shuffle=True, validation_split=0.2,
                             callbacks=[model_checkpoint])
