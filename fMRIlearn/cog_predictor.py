@@ -39,6 +39,7 @@ class CogPred(BaseEstimator, bfpData):
         self.nn_ipdata = list()
         print("Read flat maps for left and right hemispheres.")
         self.nvert_hemi = 32492
+        self.hybrid_cnn = self.get_neural_net()
 
     def map_gord2sqrs(self, sqr_size=256):
         """This function maps grayordinate data to square
@@ -81,29 +82,25 @@ class CogPred(BaseEstimator, bfpData):
             sqr_dat.noncortical_data = noncortical_data
             self.nn_ipdata.append(sqr_dat)
 
-            u_net = self.get_neural_net()
-            model_checkpoint = ModelCheckpoint('weights3d.h5', monitor='val_loss', save_best_only=True)
             
-            X = sqr_data_left[None, :, :, :] #, sqr_data_right[:,:,:,None], noncortical_data[:,:,None]]
-            
-            y=np.array(11).reshape((1,1))
-            history = u_net.fit(X, y, batch_size=1, epochs=1, verbose=1,
-                                shuffle=True, validation_split=0.2,
-                                callbacks=[model_checkpoint])
 
 
         return self.nn_ipdata
 
-    def fit(self, X, y):
+    def train_model(self):
         """ X: data in grayordinates of shape Vert x Time x Subj
             y: cognitive scores"""
       #     self.map_gord2sqrs(X)
         print('Fitting the model')
-        u_net = self.get_neural_net()
-        history = u_net.fit(X, y, batch_size=5, epochs=5, verbose=1,
-                              shuffle=True, validation_split=0.2,
-                              callbacks=[model_checkpoint])
 
+        model_checkpoint = ModelCheckpoint('weights3d.h5', monitor='val_loss', save_best_only=True)
+
+        X = self.nn_ipdata[0].sqr_data_left[None, :, :, :] #, sqr_data_right[:,:,:,None], noncortical_data[:,:,None]]
+            
+        y=np.array(11).reshape((1,5))
+        history = self.hybrid_cnn.fit(X, y, batch_size=1, epochs=1, verbose=1,
+                            shuffle=True, validation_split=0.2,
+                            callbacks=[model_checkpoint])
 
     def predict(self, str1):
         print(str1)

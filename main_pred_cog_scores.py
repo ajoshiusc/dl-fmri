@@ -24,8 +24,9 @@ nn = cp.get_neural_net()
 cp.read_fmri(data_dir, reduce_dim=21)
 cp.read_cog_scores(csv_file)
 
-d, _, _ = cp.get_data()
+#d, _, _ = cp.get_data()
 l = cp.map_gord2sqrs()
+cp.train_model()
 
 print(l)
 print(cp.nn_ipdata)
