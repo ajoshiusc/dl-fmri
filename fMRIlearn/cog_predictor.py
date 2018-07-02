@@ -99,7 +99,7 @@ class CogPred(BaseEstimator, bfpData):
         X[1] = X[1][y !=-999, :, :, :]
         X[2] = X[2][y !=-999, :, :]
         y = y[y !=-999]
-        y = y[None, :]
+        # y = y[:]
 
 
         history = self.hybrid_cnn.fit(X, y, batch_size=5, epochs=20, verbose=1,
