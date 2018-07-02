@@ -29,7 +29,7 @@ l = cp.map_gord2sqrs()
 cp.train_model()
 
 print(l)
-print(cp.nn_ipdata)
+print('Model Trained')
 #    hcprfMRI = read_hcp_rfMRI(HCPpath)
 #    hcpCogscores = read_hcp_cogscores(xlspath)
 #   cp1.fit(gordfiledir)
