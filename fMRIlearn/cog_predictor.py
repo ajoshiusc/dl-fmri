@@ -71,6 +71,10 @@ class CogPred(BaseEstimator, bfpData):
                 print(str(t_ind) + ',', end='', flush=True)
 
             noncortical_data[subn, :, :] = np.nan_to_num(data[2*self.nvert_hemi:, ])
+
+            sqr_data_right = np.nan_to_num(sqr_data_right)
+            sqr_data_left = np.nan_to_num(sqr_data_left)
+
             subn+=1
            
             
