@@ -71,6 +71,7 @@ class CogPred(BaseEstimator, bfpData):
                 print(str(t_ind) + ',', end='', flush=True)
 
             noncortical_data[subn, :, :] = np.nan_to_num(data[2*self.nvert_hemi:, ])
+          #  self.data[subn] = 0
 
             sqr_data_right = np.nan_to_num(sqr_data_right)
             sqr_data_left = np.nan_to_num(sqr_data_left)
@@ -94,7 +95,7 @@ class CogPred(BaseEstimator, bfpData):
 #        y=np.array([11,12,13,14,15]).reshape((5,1))
         y=self.cog_scores['ADHD Index'][self.subids].get_values()
 
-        history = self.hybrid_cnn.fit(X, y, batch_size=1, epochs=1, verbose=1,
+        history = self.hybrid_cnn.fit(X, y, batch_size=5, epochs=5, verbose=1,
                             shuffle=True, validation_split=0.2,
                             callbacks=[model_checkpoint])
 
