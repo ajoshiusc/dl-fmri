@@ -13,8 +13,7 @@ import scipy as sp
 from scipy.io import loadmat
 import pandas as pd
 from sklearn.decomposition import PCA
-from sklearn.preprocessing import StandardScaler
-from fMRIlearn.brainsync import brainSync, normalizeData
+from sklearn.preprocessing import StandardScaler, Imputer
 
 
 class bfpData():
@@ -35,11 +34,6 @@ class bfpData():
     def get_data(self):
         """get the rfMRI data"""
         return self.data, self.cog_scores, self.subids
-    
-    def choose_rep_sub(self):
-        self.rep_subno = 0
-
-
 
     def read_fmri(self, data_dir, reduce_dim=None, int_subid=1):
         """ Read fMRI data from disk """
@@ -47,7 +41,7 @@ class bfpData():
         self.data_dir = data_dir
         self.dirlst = glob.glob(self.data_dir+'/*.mat')
 
-        if reduce_dim != None :
+        if reduce_dim != None:
             pca = PCA(n_components=reduce_dim)
 
         for subfile in self.dirlst:
@@ -57,11 +51,14 @@ class bfpData():
                 subid = int(subid)
 
             if os.path.isfile(subfile):
-                print('Reading '+ subfile, 'subid = ' + str(subid))
+                print('Reading ' + subfile, 'subid = ' + str(subid))
                 fmri_data = loadmat(subfile)['dtseries']
-                fmri_data, _, _ = normalizeData(fmri_data.T)
-                fmri_data = fmri_data.T
-                
+
+                # Preprocess fMRI, replace Nan by avg of cortical activity at that time point and standardize this should be interesting
+                imp = Imputer(missing_values='NaN', strategy='mean', axis=0)
+                fmri_data = imp.fit_transform(fmri_data)
+                fmri_data = StandardScaler().fit(fmri_data)
+
                 if reduce_dim != None:
                     fmri_data = pca.fit_transform(fmri_data)
 
@@ -69,19 +66,16 @@ class bfpData():
                 self.data.append(fmri_data)
 #               print(subid, subfile)
 
-
-
     def read_cog_scores(self, cogscore_file):
         """ Read cognitive scores from csv file """
         self.cog_scores = pd.read_csv(cogscore_file, index_col=0)
 
-        ''' If fMRI data exists for some subjects, then store their cognitive scores ''' 
+        ''' If fMRI data exists for some subjects, then store their cognitive scores '''
         for subid in self.subids:
             self.cog_scores.append(self.get_cog_score_subid(subid))
 
         print(self.cog_scores)
 
-    def get_cog_score_subid(self,subid):
+    def get_cog_score_subid(self, subid):
         """ Get cognitive score for a given subject id"""
         return self.cog_scores.loc[subid]
-

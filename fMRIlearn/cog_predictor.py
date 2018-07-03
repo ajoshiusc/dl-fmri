@@ -8,6 +8,7 @@ Created on Sun Jun  3 00:16:45 2018
 import os
 import pickle
 import numpy as np
+import itertools
 from scipy.io import loadmat
 from scipy.interpolate import griddata
 from sklearn.base import BaseEstimator
@@ -17,12 +18,16 @@ from keras.callbacks import ModelCheckpoint
 from keras import backend as K
 from keras import losses
 import matplotlib.pyplot as plt
+from sklearn.preprocessing import StandardScaler, Imputer
 from fMRIlearn.read_gord_data import bfpData
+from fMRIlearn.brainsync import brainSync
+
 
 K.set_image_data_format('channels_last')  # TF dimension ordering in this code
 
 # Define cognitive predictor regressor This takes fMRI grayordinate data as
 # input and cognitive scores as output
+
 
 class CogPred(BaseEstimator, bfpData):
     '''This takes fMRI grayordinate data as input and cognitive scores as output'''
@@ -85,16 +90,47 @@ class CogPred(BaseEstimator, bfpData):
 
         return self.nn_ipdata
 
+    def choose_rep(self):
+        """Choses representative subject to be used as a target for BrainSync"""
+        nsub = len(self.subids)
+        subs = range(nsub)
+        dist_mat = np.zeros((nsub, nsub))
+
+        for sub1no, sub2no in itertools.product(subs, subs):
+            sub1 = self.data[sub1no]
+            sub2 = self.data[sub2no]
+            sub1 = StandardScaler().fit_transform(sub1.T)
+            sub2 = StandardScaler().fit_transform(sub2.T)  # .T to make data T x V
+            sub2s = brainSync(sub1.T, sub2.T)
+            dist_mat[sub1no, sub2no] = np.linalg.norm(sub1, sub2s)
+            print(sub1no, sub2no)
+
+        self.ref_subno = np.argmax(np.sum(dist_mat, axis=1))
+        print('The most representative subject is %d' % self.ref_subno)
+
+    def sync2rep(self):
+        """ Sync all subjects to the representative subject """
+
+        ref = self.data[self.ref_subno]
+        ref = StandardScaler().fit_transform(ref.T)
+
+        for subno in range(len(self.subids)):
+            sub = self.data[subno]
+            sub = StandardScaler().fit_transform(sub.T)  # .T to make data T x V
+            sub_sync = brainSync(ref, sub)
+            self.data[subno] = sub_sync.T
+
     def train_model(self, data_dir, csv_file):
         """ X: data in grayordinates of shape Vert x Time x Subj
             y: cognitive scores"""
       #     self.map_gord2sqrs(X)
         print('Fitting the model')
-        
+
         self.read_fmri(data_dir, reduce_dim=21)
+        self.choose_rep()
+        self.sync2rep()
         self.read_cog_scores(csv_file)
         self.map_gord2sqrs()
-
 
         model_checkpoint = ModelCheckpoint(
             'weights3d.h5', monitor='val_loss', save_best_only=True)
@@ -109,17 +145,15 @@ class CogPred(BaseEstimator, bfpData):
         y = y[y != -999]
         # y = y[:]
 
-        print('Number of subjects: %d\n'%(y.shape[0]))
+        print('Number of subjects: %d\n' % (y.shape[0]))
 
         history = self.hybrid_cnn.fit(X, y, batch_size=5, epochs=20, verbose=1,
                                       shuffle=True, validation_split=0.2,
                                       callbacks=[model_checkpoint])
-        
-        
+
         print('=======\nSaving training history\n=======')
         with open('/trainHistoryDict', 'wb') as file_pi:
             pickle.dump(history.history, file_pi)
-
 
         print('=======\nDisplaying training history\n=======')
         print(history.history.keys())
@@ -140,8 +174,6 @@ class CogPred(BaseEstimator, bfpData):
         plt.legend(['train', 'val'], loc='upper left')
         plt.show()
 
-
-
     def predict(self, data_dir, csv_file):
 
         mod = self.get_neural_net()
@@ -157,7 +189,6 @@ class CogPred(BaseEstimator, bfpData):
         ypred = mod.predict(X, verbose=1)
 
         return y, ypred
-
 
     def get_neural_net(self, isize=[256, 256]):
         input_lh = Input((isize[0], isize[1], 21))
