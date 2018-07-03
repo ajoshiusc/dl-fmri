@@ -10,15 +10,14 @@ import numpy as np
 from scipy.io import loadmat
 from scipy.interpolate import griddata
 from sklearn.base import BaseEstimator
-from fMRIlearn.read_gord_data import bfpData
-from keras.layers import Input, Conv2D, concatenate, MaxPooling2D, Flatten, Dense, Dropout
+from keras.layers import Input, Conv2D, concatenate, MaxPooling2D, Flatten, Dense
 from keras.models import Model
 from keras.callbacks import ModelCheckpoint
 from keras import backend as K
 from keras import losses
+from fMRIlearn.read_gord_data import bfpData
 
 K.set_image_data_format('channels_last')  # TF dimension ordering in this code
-
 
 # Define cognitive predictor regressor This takes fMRI grayordinate data as
 # input and cognitive scores as output
