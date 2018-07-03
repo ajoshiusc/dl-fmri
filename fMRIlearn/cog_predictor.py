@@ -83,11 +83,16 @@ class CogPred(BaseEstimator, bfpData):
 
         return self.nn_ipdata
 
-    def train_model(self):
+    def train_model(self, data_dir, csv_file):
         """ X: data in grayordinates of shape Vert x Time x Subj
             y: cognitive scores"""
       #     self.map_gord2sqrs(X)
         print('Fitting the model')
+        
+        self.read_fmri(data_dir, reduce_dim=21)
+        self.read_cog_scores(csv_file)
+        self.map_gord2sqrs()
+
 
         model_checkpoint = ModelCheckpoint(
             'weights3d.h5', monitor='val_loss', save_best_only=True)
