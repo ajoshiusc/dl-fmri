@@ -11,7 +11,7 @@ from scipy.io import loadmat
 from scipy.interpolate import griddata
 from sklearn.base import BaseEstimator
 from fMRIlearn.read_gord_data import bfpData
-from keras.layers import Input,Conv2D,concatenate,MaxPooling2D,Flatten,Dense,Dropout
+from keras.layers import Input, Conv2D, concatenate, MaxPooling2D, Flatten, Dense, Dropout
 from keras.models import Model
 from keras.callbacks import ModelCheckpoint
 from keras import backend as K
@@ -22,7 +22,6 @@ K.set_image_data_format('channels_last')  # TF dimension ordering in this code
 
 # Define cognitive predictor regressor This takes fMRI grayordinate data as
 # input and cognitive scores as output
-
 
 class CogPred(BaseEstimator, bfpData):
     '''This takes fMRI grayordinate data as input and cognitive scores as output'''
@@ -51,10 +50,12 @@ class CogPred(BaseEstimator, bfpData):
                                    np.linspace(-1.0+1e-6, 1.0-1e-6, sqr_size))
 
         print(x_ind.shape)
-        sqr_data_sz = (len(self.data), x_ind.shape[0], y_ind.shape[1], self.data[0].shape[1])
+        sqr_data_sz = (
+            len(self.data), x_ind.shape[0], y_ind.shape[1], self.data[0].shape[1])
         sqr_data_left = np.zeros(sqr_data_sz)
         sqr_data_right = np.zeros(sqr_data_sz)
-        noncortical_data = np.zeros((len(self.data), self.nvert_subcort, self.data[0].shape[1]))
+        noncortical_data = np.zeros(
+            (len(self.data), self.nvert_subcort, self.data[0].shape[1]))
         subn = 0
         for data in self.data:
             for t_ind in np.arange(data.shape[1]):
@@ -62,23 +63,23 @@ class CogPred(BaseEstimator, bfpData):
                 lh_data = data[:self.nvert_hemi, t_ind][self.sqr_map_ind]
                 sqr_inds = (x_ind, y_ind)
                 sqr_data_left[subn, :, :, t_ind] = griddata(self.sqrmap, lh_data,
-                                                      sqr_inds)
+                                                            sqr_inds)
                 # Map Right Hemisphere data
                 rh_data = data[self.nvert_hemi:2*self.nvert_hemi, t_ind]
                 rh_data = rh_data[self.sqr_map_ind]
                 sqr_data_right[subn, :, :, t_ind] = griddata(self.sqrmap,
-                                                       rh_data, sqr_inds)
+                                                             rh_data, sqr_inds)
                 print(str(t_ind) + ',', end='', flush=True)
 
-            noncortical_data[subn, :, :] = np.nan_to_num(data[2*self.nvert_hemi:, ])
+            noncortical_data[subn, :, :] = np.nan_to_num(
+                data[2*self.nvert_hemi:, ])
             self.data[subn] = 0
 
             sqr_data_right = np.nan_to_num(sqr_data_right)
             sqr_data_left = np.nan_to_num(sqr_data_left)
 
-            subn+=1
-           
-            
+            subn += 1
+
         self.nn_ipdata = [sqr_data_left, sqr_data_right, noncortical_data]
 
         return self.nn_ipdata
@@ -89,22 +90,22 @@ class CogPred(BaseEstimator, bfpData):
       #     self.map_gord2sqrs(X)
         print('Fitting the model')
 
-        model_checkpoint = ModelCheckpoint('weights3d.h5', monitor='val_loss', save_best_only=True)
+        model_checkpoint = ModelCheckpoint(
+            'weights3d.h5', monitor='val_loss', save_best_only=True)
 
         X = self.nn_ipdata
 #        y=np.array([11,12,13,14,15]).reshape((5,1))
         y = self.cog_scores['ADHD Index'][self.subids].get_values()
 
-        X[0] = X[0][y !=-999, :, :, :]
-        X[1] = X[1][y !=-999, :, :, :]
-        X[2] = X[2][y !=-999, :, :]
-        y = y[y !=-999]
+        X[0] = X[0][y != -999, :, :, :]
+        X[1] = X[1][y != -999, :, :, :]
+        X[2] = X[2][y != -999, :, :]
+        y = y[y != -999]
         # y = y[:]
 
-
         history = self.hybrid_cnn.fit(X, y, batch_size=5, epochs=20, verbose=1,
-                            shuffle=True, validation_split=0.2,
-                            callbacks=[model_checkpoint])
+                                      shuffle=True, validation_split=0.2,
+                                      callbacks=[model_checkpoint])
 
     def predict(self, str1):
         print(str1)
@@ -117,9 +118,9 @@ class CogPred(BaseEstimator, bfpData):
         conv1 = Conv2D(32, (3, 3), activation='relu', padding='same')(input_lh)
         conv1 = Conv2D(32, (3, 3), activation='relu', padding='same')(input_rh)
         pool1 = MaxPooling2D(pool_size=(2, 2))(conv1)
-        d1_ip = Dense(512,activation='relu')(sub_cort)
+        d1_ip = Dense(512, activation='relu')(sub_cort)
         d1_ip = Flatten()(d1_ip)
-        d1_ip = Dense(1,activation='relu')(d1_ip)
+        d1_ip = Dense(1, activation='relu')(d1_ip)
 
         conv2 = Conv2D(64, (3, 3), activation='relu', padding='same')(pool1)
         conv2 = Conv2D(64, (3, 3), activation='relu', padding='same')(conv2)
@@ -137,7 +138,7 @@ class CogPred(BaseEstimator, bfpData):
         conv5 = Conv2D(512, (3, 3), activation='relu', padding='same')(pool4)
         conv5 = Conv2D(512, (3, 3), activation='relu', padding='same')(conv5)
         flat1 = Flatten()(conv5)
-        
+
         d1 = Dense(512, activation='relu')(flat1)
         d2 = Dense(1, activation='relu')(d1)
         d2 = concatenate([d2, d1_ip], axis=-1)
@@ -152,8 +153,8 @@ class CogPred(BaseEstimator, bfpData):
 #        model = Model(inputs=[input_lh, input_rh, sub_cort], outputs=out_theta)
         model = Model(inputs=[input_lh, input_rh, sub_cort], outputs=out_theta)
 
-
-        model.compile(optimizer='adam', loss=losses.mean_squared_error, metrics=['mse'])
+        model.compile(optimizer='adam',
+                      loss=losses.mean_squared_error, metrics=['mse'])
 
         return model
 
