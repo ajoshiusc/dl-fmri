@@ -57,7 +57,7 @@ class bfpData():
                 # Preprocess fMRI, replace Nan by avg of cortical activity at that time point and standardize this should be interesting
                 imp = Imputer(missing_values='NaN', strategy='mean', axis=0)
                 fmri_data = imp.fit_transform(fmri_data)
-                fmri_data = StandardScaler().fit(fmri_data)
+                fmri_data = StandardScaler().fit_transform(fmri_data)
 
                 if reduce_dim != None:
                     fmri_data = pca.fit_transform(fmri_data)
