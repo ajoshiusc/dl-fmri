@@ -102,6 +102,8 @@ class CogPred(BaseEstimator, bfpData):
         y = y[y != -999]
         # y = y[:]
 
+        print('Number of subjects: %d\n'%(y.shape[0]))
+
         history = self.hybrid_cnn.fit(X, y, batch_size=5, epochs=20, verbose=1,
                                       shuffle=True, validation_split=0.2,
                                       callbacks=[model_checkpoint])
