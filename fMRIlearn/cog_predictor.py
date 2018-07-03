@@ -156,7 +156,7 @@ class CogPred(BaseEstimator, bfpData):
 
         ypred = mod.predict(X, verbose=1)
 
-        print(y, ypred)
+        return y, ypred
 
 
     def get_neural_net(self, isize=[256, 256]):

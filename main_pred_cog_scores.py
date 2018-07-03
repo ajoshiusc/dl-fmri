@@ -22,7 +22,9 @@ csv_file = '/deneb_disk/ADHD_Peking_bfp/Peking_all_phenotypic.csv'
 cp = cpred.CogPred(bfp_dir)
 
 #cp.train_model(data_dir=train_data_dir, csv_file=csv_file)
-cp.predict(data_dir=test_data_dir, csv_file=csv_file)
+y, ypred = cp.predict(data_dir=test_data_dir, csv_file=csv_file)
+
+print(y, ypred)
 
 print('Model Trained')
 
