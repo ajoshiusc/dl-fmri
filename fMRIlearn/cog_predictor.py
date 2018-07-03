@@ -6,6 +6,7 @@ Created on Sun Jun  3 00:16:45 2018
 @author: ajoshi
 """
 import os
+import pickle
 import numpy as np
 from scipy.io import loadmat
 from scipy.interpolate import griddata
@@ -15,6 +16,7 @@ from keras.models import Model
 from keras.callbacks import ModelCheckpoint
 from keras import backend as K
 from keras import losses
+import matplotlib.pyplot as plt
 from fMRIlearn.read_gord_data import bfpData
 
 K.set_image_data_format('channels_last')  # TF dimension ordering in this code
@@ -112,9 +114,50 @@ class CogPred(BaseEstimator, bfpData):
         history = self.hybrid_cnn.fit(X, y, batch_size=5, epochs=20, verbose=1,
                                       shuffle=True, validation_split=0.2,
                                       callbacks=[model_checkpoint])
+        
+        
+        print('=======\nSaving training history\n=======')
+        with open('/trainHistoryDict', 'wb') as file_pi:
+            pickle.dump(history.history, file_pi)
 
-    def predict(self, str1):
-        print(str1)
+
+        print('=======\nDisplaying training history\n=======')
+        print(history.history.keys())
+        # summarize history for accuracy
+        plt.plot(history.history['mean_squared_error'])
+        plt.plot(history.history['val_mean_squared_error'])
+        plt.title('model fit mse')
+        plt.ylabel('mse')
+        plt.xlabel('epoch')
+        plt.legend(['train', 'val'], loc='upper left')
+        plt.show()
+        # summarize history for loss
+        plt.plot(history.history['loss'])
+        plt.plot(history.history['val_loss'])
+        plt.title('model loss')
+        plt.ylabel('loss')
+        plt.xlabel('epoch')
+        plt.legend(['train', 'val'], loc='upper left')
+        plt.show()
+
+
+
+    def predict(self, data_dir, csv_file):
+
+        mod = self.get_neural_net()
+
+        mod.load_weights('weights3d.h5')
+
+        self.read_fmri(data_dir, reduce_dim=21)
+        self.read_cog_scores(csv_file)
+        self.map_gord2sqrs()
+        X = self.nn_ipdata
+        y = self.cog_scores['ADHD Index'][self.subids].get_values()
+
+        ypred = mod.predict(X, verbose=1)
+
+        print(y, ypred)
+
 
     def get_neural_net(self, isize=[256, 256]):
         input_lh = Input((isize[0], isize[1], 21))
