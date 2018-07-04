@@ -128,9 +128,9 @@ class CogPred(BaseEstimator, bfpData):
             print(
                 '=======\n Reference subject is not initialized, loading from a file\n=======\n'
             )
-        a = np.load('Refdata.npz')
-        self.ref_subno = a['ref_subno']
-        self.ref_data = a['ref_data']
+            a = np.load('Refdata.npz')
+            self.ref_subno = a['ref_subno']
+            self.ref_data = a['ref_data']
 
         ref = StandardScaler().fit_transform(self.ref_data.T)
 
@@ -153,7 +153,7 @@ class CogPred(BaseEstimator, bfpData):
         self.map_gord2sqrs()
 
         model_checkpoint = ModelCheckpoint(
-            'weights3d_test.h5', monitor='val_loss', save_best_only=True)
+            'weights3d.h5', monitor='val_loss', save_best_only=True)
 
         X = self.nn_ipdata
         #        y=np.array([11,12,13,14,15]).reshape((5,1))
@@ -204,7 +204,7 @@ class CogPred(BaseEstimator, bfpData):
 
         mod = self.get_neural_net()
 
-        mod.load_weights('weights3d_test.h5')
+        mod.load_weights('weights3d.h5')
 
         self.read_fmri(data_dir, reduce_dim=21)
         self.sync2rep()
