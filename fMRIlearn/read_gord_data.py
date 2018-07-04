@@ -25,10 +25,10 @@ class bfpData():
         self.cog_scores = 0
         self.nvert_hemi = 32492
         self.nvert_subcort = 31870
-        self.data_dir = ""
-        self.subids = list()
-        self.data = list()
-        self.dirlst = list()
+        self.data_dir = None
+        self.subids = None
+        self.data = None
+        self.dirlst = None
         print("Read flat maps for left and right hemispheres.")
 
     def get_data(self):
@@ -41,6 +41,7 @@ class bfpData():
         self.data_dir = data_dir
         self.dirlst = glob.glob(self.data_dir + '/*.mat')
         self.data = list()
+        self.subids = list()
 
         if reduce_dim is not None:
             pca = PCA(n_components=reduce_dim)
