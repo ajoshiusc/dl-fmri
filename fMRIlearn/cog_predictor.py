@@ -7,8 +7,8 @@ Created on Sun Jun  3 00:16:45 2018
 """
 import os
 import pickle
-import numpy as np
 import itertools
+import numpy as np
 from scipy.io import loadmat
 from scipy.interpolate import griddata
 from keras.layers import Input, Conv2D, concatenate, MaxPooling2D, Flatten, Dense
