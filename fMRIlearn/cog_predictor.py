@@ -11,17 +11,16 @@ import numpy as np
 import itertools
 from scipy.io import loadmat
 from scipy.interpolate import griddata
-from sklearn.base import BaseEstimator
 from keras.layers import Input, Conv2D, concatenate, MaxPooling2D, Flatten, Dense
 from keras.models import Model
 from keras.callbacks import ModelCheckpoint
 from keras import backend as K
 from keras import losses
 import matplotlib.pyplot as plt
-from sklearn.preprocessing import StandardScaler, Imputer
+from sklearn.base import BaseEstimator
+from sklearn.preprocessing import StandardScaler
 from fMRIlearn.read_gord_data import bfpData
 from fMRIlearn.brainsync import brainSync
-
 
 K.set_image_data_format('channels_last')  # TF dimension ordering in this code
 
@@ -44,6 +43,7 @@ class CogPred(BaseEstimator, bfpData):
         self.nn_ipdata = list()
         print("Read flat maps for left and right hemispheres.")
         self.hybrid_cnn = self.get_neural_net()
+        self.ref_subno = 0
 
     def map_gord2sqrs(self, sqr_size=256):
         """This function maps grayordinate data to square
@@ -52,33 +52,34 @@ class CogPred(BaseEstimator, bfpData):
         sqr_size: size of the square
         """
         print(sqr_size)
-        x_ind, y_ind = np.meshgrid(np.linspace(-1.0+1e-6, 1.0-1e-6, sqr_size),
-                                   np.linspace(-1.0+1e-6, 1.0-1e-6, sqr_size))
+        x_ind, y_ind = np.meshgrid(
+            np.linspace(-1.0 + 1e-6, 1.0 - 1e-6, sqr_size),
+            np.linspace(-1.0 + 1e-6, 1.0 - 1e-6, sqr_size))
 
         print(x_ind.shape)
-        sqr_data_sz = (
-            len(self.data), x_ind.shape[0], y_ind.shape[1], self.data[0].shape[1])
+        sqr_data_sz = (len(self.data), x_ind.shape[0], y_ind.shape[1],
+                       self.data[0].shape[1])
         sqr_data_left = np.zeros(sqr_data_sz)
         sqr_data_right = np.zeros(sqr_data_sz)
-        noncortical_data = np.zeros(
-            (len(self.data), self.nvert_subcort, self.data[0].shape[1]))
+        noncortical_data = np.zeros((len(self.data), self.nvert_subcort,
+                                     self.data[0].shape[1]))
         subn = 0
         for data in self.data:
             for t_ind in np.arange(data.shape[1]):
                 # Map Left Hemisphere data
                 lh_data = data[:self.nvert_hemi, t_ind][self.sqr_map_ind]
                 sqr_inds = (x_ind, y_ind)
-                sqr_data_left[subn, :, :, t_ind] = griddata(self.sqrmap, lh_data,
-                                                            sqr_inds)
+                sqr_data_left[subn, :, :, t_ind] = griddata(
+                    self.sqrmap, lh_data, sqr_inds)
                 # Map Right Hemisphere data
-                rh_data = data[self.nvert_hemi:2*self.nvert_hemi, t_ind]
+                rh_data = data[self.nvert_hemi:2 * self.nvert_hemi, t_ind]
                 rh_data = rh_data[self.sqr_map_ind]
-                sqr_data_right[subn, :, :, t_ind] = griddata(self.sqrmap,
-                                                             rh_data, sqr_inds)
+                sqr_data_right[subn, :, :, t_ind] = griddata(
+                    self.sqrmap, rh_data, sqr_inds)
                 print(str(t_ind) + ',', end='', flush=True)
 
             noncortical_data[subn, :, :] = np.nan_to_num(
-                data[2*self.nvert_hemi:, ])
+                data[2 * self.nvert_hemi:, ])
             self.data[subn] = 0
 
             sqr_data_right = np.nan_to_num(sqr_data_right)
@@ -91,7 +92,7 @@ class CogPred(BaseEstimator, bfpData):
         return self.nn_ipdata
 
     def choose_rep(self):
-        """Choses representative subject to be used as a target for BrainSync"""
+        """Choses representative subject to be used as target for BrainSync"""
         nsub = len(self.subids)
         subs = range(nsub)
         dist_mat = np.zeros((nsub, nsub))
@@ -100,7 +101,7 @@ class CogPred(BaseEstimator, bfpData):
             sub1 = self.data[sub1no]
             sub2 = self.data[sub2no]
             sub1 = StandardScaler().fit_transform(sub1.T)
-            sub2 = StandardScaler().fit_transform(sub2.T)  # .T to make data T x V
+            sub2 = StandardScaler().fit_transform(sub2.T)  # .T to make it TxV
             sub2s = brainSync(sub1.T, sub2.T)
             dist_mat[sub1no, sub2no] = np.linalg.norm(sub1, sub2s)
             print(sub1no, sub2no)
@@ -116,14 +117,15 @@ class CogPred(BaseEstimator, bfpData):
 
         for subno in range(len(self.subids)):
             sub = self.data[subno]
-            sub = StandardScaler().fit_transform(sub.T)  # .T to make data T x V
-            sub_sync = brainSync(ref, sub)
+            sub = StandardScaler().fit_transform(
+                sub.T)  # .T to make data T x V
+            sub_sync, _ = brainSync(ref, sub)
             self.data[subno] = sub_sync.T
 
     def train_model(self, data_dir, csv_file):
         """ X: data in grayordinates of shape Vert x Time x Subj
             y: cognitive scores"""
-      #     self.map_gord2sqrs(X)
+        #     self.map_gord2sqrs(X)
         print('Fitting the model')
 
         self.read_fmri(data_dir, reduce_dim=21)
@@ -136,7 +138,7 @@ class CogPred(BaseEstimator, bfpData):
             'weights3d.h5', monitor='val_loss', save_best_only=True)
 
         X = self.nn_ipdata
-#        y=np.array([11,12,13,14,15]).reshape((5,1))
+        #        y=np.array([11,12,13,14,15]).reshape((5,1))
         y = self.cog_scores['ADHD Index'][self.subids].get_values()
 
         X[0] = X[0][y != -999, :, :, :]
@@ -147,9 +149,15 @@ class CogPred(BaseEstimator, bfpData):
 
         print('Number of subjects: %d\n' % (y.shape[0]))
 
-        history = self.hybrid_cnn.fit(X, y, batch_size=5, epochs=20, verbose=1,
-                                      shuffle=True, validation_split=0.2,
-                                      callbacks=[model_checkpoint])
+        history = self.hybrid_cnn.fit(
+            X,
+            y,
+            batch_size=5,
+            epochs=20,
+            verbose=1,
+            shuffle=True,
+            validation_split=0.2,
+            callbacks=[model_checkpoint])
 
         print('=======\nSaving training history\n=======')
         with open('/trainHistoryDict', 'wb') as file_pi:
@@ -224,17 +232,17 @@ class CogPred(BaseEstimator, bfpData):
         d2 = concatenate([d2, d1_ip], axis=-1)
 
         out_theta = Dense(1)(d2)
-    #    conv_tx = Conv2D(1, (1, 1), activation=final_activation)(conv5)
-    #    conv_ty = Conv2D(1, (1, 1), activation=final_activation)(conv5)
-    #    conv_theta = Conv2D(1, (1, 1), activation='tanh')(conv5)
+        #    conv_tx = Conv2D(1, (1, 1), activation=final_activation)(conv5)
+        #    conv_ty = Conv2D(1, (1, 1), activation=final_activation)(conv5)
+        #    conv_theta = Conv2D(1, (1, 1), activation='tanh')(conv5)
 
-    #    out_img = rotate(inputs,conv_theta)
+        #    out_img = rotate(inputs,conv_theta)
 
-#        model = Model(inputs=[input_lh, input_rh, sub_cort], outputs=out_theta)
+        #        model = Model(inputs=[input_lh, input_rh, sub_cort], outputs=out_theta)
         model = Model(inputs=[input_lh, input_rh, sub_cort], outputs=out_theta)
 
-        model.compile(optimizer='adam',
-                      loss=losses.mean_squared_error, metrics=['mse'])
+        model.compile(
+            optimizer='adam', loss=losses.mean_squared_error, metrics=['mse'])
 
         return model
 

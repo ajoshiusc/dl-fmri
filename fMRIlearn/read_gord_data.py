@@ -36,12 +36,12 @@ class bfpData():
         return self.data, self.cog_scores, self.subids
 
     def read_fmri(self, data_dir, reduce_dim=None, int_subid=1):
-        """ Read fMRI data from disk """
-        """ If reduce_dim = None, no dimesionality reduction is performed"""
+        """ Read fMRI data from disk
+            If reduce_dim = None, no dimesionality reduction is performed"""
         self.data_dir = data_dir
-        self.dirlst = glob.glob(self.data_dir+'/*.mat')
+        self.dirlst = glob.glob(self.data_dir + '/*.mat')
 
-        if reduce_dim != None:
+        if reduce_dim is not None:
             pca = PCA(n_components=reduce_dim)
 
         for subfile in self.dirlst:
@@ -54,7 +54,8 @@ class bfpData():
                 print('Reading ' + subfile, 'subid = ' + str(subid))
                 fmri_data = loadmat(subfile)['dtseries']
 
-                # Preprocess fMRI, replace Nan by avg of cortical activity at that time point and standardize this should be interesting
+                # Preprocess fMRI, replace Nan by avg of cortical activity at
+                # that time point and standardize this should be interesting
                 imp = Imputer(missing_values='NaN', strategy='mean', axis=0)
                 fmri_data = imp.fit_transform(fmri_data)
                 fmri_data = StandardScaler().fit_transform(fmri_data)
@@ -64,12 +65,13 @@ class bfpData():
 
                 self.subids.append(subid)
                 self.data.append(fmri_data)
+
+
 #               print(subid, subfile)
 
     def read_cog_scores(self, cogscore_file):
         """ Read cognitive scores from csv file """
         self.cog_scores = pd.read_csv(cogscore_file, index_col=0)
-
         ''' If fMRI data exists for some subjects, then store their cognitive scores '''
         for subid in self.subids:
             self.cog_scores.append(self.get_cog_score_subid(subid))
