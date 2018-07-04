@@ -44,6 +44,7 @@ class CogPred(BaseEstimator, bfpData):
         print("Read flat maps for left and right hemispheres.")
         self.hybrid_cnn = self.get_neural_net()
         self.ref_subno = 0
+        self.ref_data = 0
 
     def map_gord2sqrs(self, sqr_size=256):
         """This function maps grayordinate data to square
@@ -107,7 +108,7 @@ class CogPred(BaseEstimator, bfpData):
                                                       sub2s.flatten())
             print(sub1no, sub2no)
 
-        self.ref_subno = np.argmax(np.sum(dist_mat, axis=1))
+        self.ref_subno = np.argmin(np.sum(dist_mat, axis=1))
         self.ref_data = self.data[self.ref_subno]
 
         print('The most representative subject is %d' % self.ref_subno)
