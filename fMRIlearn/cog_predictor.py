@@ -117,8 +117,7 @@ class CogPred(BaseEstimator, bfpData):
 
         for subno in range(len(self.subids)):
             sub = self.data[subno]
-            sub = StandardScaler().fit_transform(
-                sub.T)  # .T to make data T x V
+            sub = StandardScaler().fit_transform(sub.T)  # .T to make data TxV
             sub_sync, _ = brainSync(ref, sub)
             self.data[subno] = sub_sync.T
 
