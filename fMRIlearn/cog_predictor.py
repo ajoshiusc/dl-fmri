@@ -102,7 +102,7 @@ class CogPred(BaseEstimator, bfpData):
             sub2 = self.data[sub2no]
             sub1 = StandardScaler().fit_transform(sub1.T)
             sub2 = StandardScaler().fit_transform(sub2.T)  # .T to make it TxV
-            sub2s = brainSync(sub1.T, sub2.T)
+            sub2s, _ = brainSync(sub1.T, sub2.T)
             dist_mat[sub1no, sub2no] = np.linalg.norm(sub1, sub2s)
             print(sub1no, sub2no)
 
