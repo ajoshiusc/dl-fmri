@@ -108,13 +108,14 @@ class CogPred(BaseEstimator, bfpData):
             print(sub1no, sub2no)
 
         self.ref_subno = np.argmax(np.sum(dist_mat, axis=1))
+        self.ref_data = self.data[self.ref_subno]
+
         print('The most representative subject is %d' % self.ref_subno)
 
     def sync2rep(self):
         """ Sync all subjects to the representative subject """
 
-        ref = self.data[self.ref_subno]
-        ref = StandardScaler().fit_transform(ref.T)
+        ref = StandardScaler().fit_transform(self.ref_data.T)
 
         for subno in range(len(self.subids)):
             sub = self.data[subno]
@@ -160,7 +161,7 @@ class CogPred(BaseEstimator, bfpData):
             callbacks=[model_checkpoint])
 
         print('=======\nSaving training history\n=======')
-        with open('/trainHistoryDict', 'wb') as file_pi:
+        with open('trainHistoryDict', 'wb') as file_pi:
             pickle.dump(history.history, file_pi)
 
         print('=======\nDisplaying training history\n=======')
@@ -189,6 +190,7 @@ class CogPred(BaseEstimator, bfpData):
         mod.load_weights('weights3d.h5')
 
         self.read_fmri(data_dir, reduce_dim=21)
+        self.sync2rep()
         self.read_cog_scores(csv_file)
         self.map_gord2sqrs()
         X = self.nn_ipdata

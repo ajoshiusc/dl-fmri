@@ -40,6 +40,7 @@ class bfpData():
             If reduce_dim = None, no dimesionality reduction is performed"""
         self.data_dir = data_dir
         self.dirlst = glob.glob(self.data_dir + '/*.mat')
+        self.data = list()
 
         if reduce_dim is not None:
             pca = PCA(n_components=reduce_dim)
