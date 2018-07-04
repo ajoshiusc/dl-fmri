@@ -113,8 +113,8 @@ class CogPred(BaseEstimator, bfpData):
                                                       sub2s.flatten())
             print(sub1no, sub2no)
 
-        ref_subno = np.argmin(np.sum(dist_mat, axis=1))
-        ref_data = self.data[self.ref_subno]
+        self.ref_subno = np.argmin(np.sum(dist_mat, axis=1))
+        self.ref_data = self.data[self.ref_subno]
 
         # Save the reference subject and ref subject data
         np.savez_compressed(
@@ -129,8 +129,8 @@ class CogPred(BaseEstimator, bfpData):
                 '=======\n Reference subject is not initialized, loading from a file\n=======\n'
             )
         a = np.load('Refdata.npz')
-        self.ref_subno = a.ref_subno
-        self.ref_data = a.ref_data
+        self.ref_subno = a['ref_subno']
+        self.ref_data = a['ref_data']
 
         ref = StandardScaler().fit_transform(self.ref_data.T)
 
@@ -170,8 +170,8 @@ class CogPred(BaseEstimator, bfpData):
         history = self.hybrid_cnn.fit(
             X,
             y,
-            batch_size=5,
-            epochs=20,
+            batch_size=1,
+            epochs=2,
             verbose=1,
             shuffle=True,
             validation_split=0.2,
