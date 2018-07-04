@@ -52,12 +52,13 @@ class CogPred(BaseEstimator, bfpData):
         data: data defined on 32k vertices,
         sqr_size: size of the square
         """
-        print(sqr_size)
         x_ind, y_ind = np.meshgrid(
             np.linspace(-1.0 + 1e-6, 1.0 - 1e-6, sqr_size),
             np.linspace(-1.0 + 1e-6, 1.0 - 1e-6, sqr_size))
+        sqr_inds = (x_ind, y_ind)
 
-        print(x_ind.shape)
+        print('\n=======\n Mapping to square\n=======\n')
+
         sqr_data_sz = (len(self.data), x_ind.shape[0], y_ind.shape[1],
                        self.data[0].shape[1])
         sqr_data_left = np.zeros(sqr_data_sz)
@@ -67,17 +68,21 @@ class CogPred(BaseEstimator, bfpData):
         subn = 0
         for data in self.data:
             for t_ind in np.arange(data.shape[1]):
+
                 # Map Left Hemisphere data
                 lh_data = data[:self.nvert_hemi, t_ind][self.sqr_map_ind]
-                sqr_inds = (x_ind, y_ind)
                 sqr_data_left[subn, :, :, t_ind] = griddata(
                     self.sqrmap, lh_data, sqr_inds)
+
                 # Map Right Hemisphere data
                 rh_data = data[self.nvert_hemi:2 * self.nvert_hemi, t_ind]
                 rh_data = rh_data[self.sqr_map_ind]
+
                 sqr_data_right[subn, :, :, t_ind] = griddata(
                     self.sqrmap, rh_data, sqr_inds)
-                print(str(t_ind) + ',', end='', flush=True)
+                print('.', end='', flush=True)
+
+            print('subno = %d' % subn)
 
             noncortical_data[subn, :, :] = np.nan_to_num(
                 data[2 * self.nvert_hemi:, ])
@@ -108,13 +113,24 @@ class CogPred(BaseEstimator, bfpData):
                                                       sub2s.flatten())
             print(sub1no, sub2no)
 
-        self.ref_subno = np.argmin(np.sum(dist_mat, axis=1))
-        self.ref_data = self.data[self.ref_subno]
+        ref_subno = np.argmin(np.sum(dist_mat, axis=1))
+        ref_data = self.data[self.ref_subno]
+
+        # Save the reference subject and ref subject data
+        np.savez_compressed(
+            'Refdata.npz', ref_data=self.ref_data, ref_subno=self.ref_subno)
 
         print('The most representative subject is %d' % self.ref_subno)
 
     def sync2rep(self):
         """ Sync all subjects to the representative subject """
+        if self.ref_subno is None:
+            print(
+                '=======\n Reference subject is not initialized, loading from a file\n=======\n'
+            )
+        a = np.load('Refdata.npz')
+        self.ref_subno = a.ref_subno
+        self.ref_data = a.ref_data
 
         ref = StandardScaler().fit_transform(self.ref_data.T)
 
@@ -137,7 +153,7 @@ class CogPred(BaseEstimator, bfpData):
         self.map_gord2sqrs()
 
         model_checkpoint = ModelCheckpoint(
-            'weights3d.h5', monitor='val_loss', save_best_only=True)
+            'weights3d_test.h5', monitor='val_loss', save_best_only=True)
 
         X = self.nn_ipdata
         #        y=np.array([11,12,13,14,15]).reshape((5,1))
@@ -162,7 +178,7 @@ class CogPred(BaseEstimator, bfpData):
             callbacks=[model_checkpoint])
 
         print('=======\nSaving training history\n=======')
-        with open('trainHistoryDict', 'wb') as file_pi:
+        with open('trainHistoryDict_test', 'wb') as file_pi:
             pickle.dump(history.history, file_pi)
 
         print('=======\nDisplaying training history\n=======')
@@ -188,7 +204,7 @@ class CogPred(BaseEstimator, bfpData):
 
         mod = self.get_neural_net()
 
-        mod.load_weights('weights3d.h5')
+        mod.load_weights('weights3d_test.h5')
 
         self.read_fmri(data_dir, reduce_dim=21)
         self.sync2rep()

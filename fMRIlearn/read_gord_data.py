@@ -43,6 +43,8 @@ class bfpData():
         self.data = list()
         self.subids = list()
 
+        print('\n=======\n Reading fMRI data\n=======\n')
+
         if reduce_dim is not None:
             pca = PCA(n_components=reduce_dim)
 
@@ -53,7 +55,7 @@ class bfpData():
                 subid = int(subid)
 
             if os.path.isfile(subfile):
-                print('Reading ' + subfile, 'subid = ' + str(subid))
+                print('Reading sub id = ' + str(subid))
                 fmri_data = loadmat(subfile)['dtseries']
 
                 # Preprocess fMRI, replace Nan by avg of cortical activity at
