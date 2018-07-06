@@ -10,24 +10,26 @@ Created on Sun Jun  3 00:09:21 2018
 # ||Shree Ganeshaya Namaha||
 import numpy as np
 import fMRIlearn.cog_predictor as cpred
-# import fMRIlearn.read_gord_data as rh
-# def main():
-""" Main script that calls the functions object"""
-bfp_dir = '/home/ajoshi/coding_ground/bfp'
-train_data_dir = '/deneb_disk/ADHD_Peking_bfp/training'
-test_data_dir = '/deneb_disk/ADHD_Peking_bfp/testing'
 
-csv_file = '/deneb_disk/ADHD_Peking_bfp/Peking_all_phenotypic.csv'
 
-cp = cpred.CogPred(bfp_dir)
+def main():
+    """ Main script that calls the functions object"""
+    bfp_dir = '/home/ajoshi/coding_ground/bfp'
+    train_data_dir = '/deneb_disk/ADHD_Peking_bfp/training'
+    test_data_dir = '/deneb_disk/ADHD_Peking_bfp/testing'
 
-cp.train_model(data_dir=train_data_dir, csv_file=csv_file)
-y, ypred = cp.predict(data_dir=test_data_dir, csv_file=csv_file)
+    csv_file = '/deneb_disk/ADHD_Peking_bfp/Peking_all_phenotypic.csv'
 
-print(y, ypred)
-np.savez_compressed('pred_res.npz', y=y, ypred=ypred)
+    cp = cpred.CogPred(bfp_dir)
 
-print('Model Trained')
+    cp.train_model(data_dir=train_data_dir, csv_file=csv_file)
+    y, ypred = cp.predict(data_dir=test_data_dir, csv_file=csv_file)
 
-# if __name__ == "__main__":
-#    main()
+    print(y, ypred)
+    np.savez_compressed('pred_res.npz', y=y, ypred=ypred)
+
+    print('Model Trained')
+
+
+if __name__ == "__main__":
+    main()

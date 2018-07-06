@@ -172,9 +172,6 @@ class CogPred(BaseEstimator, bfpData):
 
         print('training with this data\n')
         print(y)
-        print(X)
-
-        #        print('Number of subjects: %d\n' % (y.shape[0]))
 
         history = self.hybrid_cnn.fit(
             X,
@@ -276,9 +273,8 @@ class CogPred(BaseEstimator, bfpData):
         out_theta = Dense(1, activation='relu')(dense4)
         print("==Defining Model  ==")
         model = Model(inputs=[main_input], outputs=[out_theta])
-
-        print("==Compiling Model ==")
         sgd = SGD(lr=0.1, decay=1e-6, momentum=0.9, nesterov=True)
+
         model.compile(
             optimizer=sgd, loss=losses.mean_squared_error, metrics=['mse'])
 
