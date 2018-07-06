@@ -8,9 +8,9 @@ Created on Sun Jun  3 00:09:21 2018
 
 # ||AUM||
 # ||Shree Ganeshaya Namaha||
+import numpy as np
 import fMRIlearn.cog_predictor as cpred
 # import fMRIlearn.read_gord_data as rh
-import numpy as np
 # def main():
 """ Main script that calls the functions object"""
 bfp_dir = '/home/ajoshi/coding_ground/bfp'
