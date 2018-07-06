@@ -165,7 +165,7 @@ class CogPred(BaseEstimator, bfpData):
         X[0] = X[0][y > 0, :, :, :]
         X[1] = X[1][y > 0, :, :, :]
         X[2] = X[2][y > 0, :, :]
-        y = y[y > 0] / 50.0
+        y = y[y > 0] / 100.0
         # y = y[:]
         X = X[0].astype('float32')
         y = y.astype('float32')
@@ -211,7 +211,7 @@ class CogPred(BaseEstimator, bfpData):
         self.read_cog_scores(csv_file)
         self.map_gord2sqrs()
         X = self.nn_ipdata[0].astype('float32')
-        y = self.cog_scores['ADHD Index'][self.subids].get_values() / 50.0
+        y = self.cog_scores['ADHD Index'][self.subids].get_values() / 100.0
         y = y.astype('float32')
         ypred = mod.predict(X, verbose=1)
 
