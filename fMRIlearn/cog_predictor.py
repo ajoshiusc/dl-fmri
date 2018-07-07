@@ -11,12 +11,14 @@ import itertools
 import numpy as np
 from scipy.io import loadmat
 from scipy.interpolate import griddata
-from keras.layers import Input, Conv2D, concatenate, MaxPooling2D, Flatten, Dense, ZeroPadding2D, Dropout
+from keras.layers import Input, Conv2D, MaxPooling2D, Flatten, Dense, ZeroPadding2D, Dropout
 from keras.models import Model
 from keras.optimizers import SGD
 from keras.callbacks import ModelCheckpoint
 from keras import backend as K
 from keras import losses
+from functools import partial
+import multiprocessing
 import matplotlib.pyplot as plt
 from sklearn.base import BaseEstimator
 from sklearn.preprocessing import StandardScaler
@@ -24,6 +26,18 @@ from fMRIlearn.read_gord_data import bfpData
 from fMRIlearn.brainsync import brainSync
 
 K.set_image_data_format('channels_last')  # TF dimension ordering in this code
+
+_mproc_data = {}
+#_mproc_data['data'] = np.arange(10)
+#print(_mproc_data)
+
+def dist_sub2sub(subno):
+    global _mproc_data
+    print(subno[0], subno[1])
+    data = _mproc_data['data']
+    print(data)
+    #sub1no, sub2no):
+
 
 # Define cognitive predictor regressor This takes fMRI grayordinate data as
 # input and cognitive scores as output
@@ -98,12 +112,34 @@ class CogPred(BaseEstimator, bfpData):
 
         return self.nn_ipdata
 
+        #    dist_mat[sub1no, sub2no] = np.linalg.norm(sub1.flatten() -
+        #                                              sub2s.flatten())
+
+        #print(sub1no, sub2no, dist_mat[sub1no, sub2no], flush=True)
+
+    #    print(sub1no, sub2no, flush=True)
+    #    sub1 = self.data[10000000]
+    #    sub2 = self.data[sub2no]
+    #    sub1 = StandardScaler().fit_transform(sub1.T)
+    #    sub2 = StandardScaler().fit_transform(sub2.T)  # .T to make it TxV
+    #    sub2s, _ = brainSync(sub1, sub2)
+
     def choose_rep(self):
         """Choses representative subject to be used as target for BrainSync"""
+        global _mproc_data
         nsub = len(self.subids)
         subs = range(nsub)
         dist_mat = np.zeros((nsub, nsub))
 
+        _mproc_data['data'] = np.arange(10)
+
+        pool = multiprocessing.Pool(processes=4)
+
+        #    f = partial(self.dist_sub2sub, dist_mat)
+        pool.map(dist_sub2sub, itertools.product(subs, subs))
+        pool.close()
+        _mproc_data = {}
+        """ 
         for sub1no, sub2no in itertools.product(subs, subs):
             sub1 = self.data[sub1no]
             sub2 = self.data[sub2no]
@@ -113,6 +149,9 @@ class CogPred(BaseEstimator, bfpData):
             dist_mat[sub1no, sub2no] = np.linalg.norm(sub1.flatten() -
                                                       sub2s.flatten())
             print(sub1no, sub2no)
+    
+        """
+        print(dist_mat)
 
         self.ref_subno = np.argmin(np.sum(dist_mat, axis=1))
         self.ref_data = self.data[self.ref_subno]
