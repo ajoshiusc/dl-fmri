@@ -165,7 +165,7 @@ class CogPred(BaseEstimator, bfpData):
         X[0] = X[0][y > 0, :, :, :]
         X[1] = X[1][y > 0, :, :, :]
         X[2] = X[2][y > 0, :, :]
-        y = y[y > 0] / 100.0
+        y = y[y > 0] / 50.0
         # y = y[:]
         X = X[0].astype('float32')
         y = y.astype('float32')
@@ -208,7 +208,7 @@ class CogPred(BaseEstimator, bfpData):
         self.read_cog_scores(csv_file)
         self.map_gord2sqrs()
         X = self.nn_ipdata[0].astype('float32')
-        y = self.cog_scores['ADHD Index'][self.subids].get_values() / 100.0
+        y = self.cog_scores['ADHD Index'][self.subids].get_values() / 50.0
         y = y.astype('float32')
         ypred = mod.predict(X, verbose=1)
 
@@ -270,10 +270,10 @@ class CogPred(BaseEstimator, bfpData):
         dense4 = Dense(256, activation='relu', name='dense4')(dropout3)
 
         # My addition of regression layer
-        out_theta = Dense(1, activation='relu')(dense4)
+        out_theta = Dense(1)(dense4)
         print("==Defining Model  ==")
         model = Model(inputs=[main_input], outputs=[out_theta])
-        sgd = SGD(lr=0.1, decay=1e-6, momentum=0.9, nesterov=True)
+        sgd = SGD(lr=0.05, decay=1e-6, momentum=0.9, nesterov=True)
 
         model.compile(
             optimizer=sgd, loss=losses.mean_squared_error, metrics=['mse'])
