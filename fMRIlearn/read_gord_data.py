@@ -51,24 +51,36 @@ class bfpData():
         for subfile in self.dirlst:
             subid = subfile.replace('_rest_bold.32k.GOrd.mat', '')
             subid = subid.replace(self.data_dir + '/', '')
+
             if int_subid:
                 subid = int(subid)
 
-            if os.path.isfile(subfile):
-                print('Reading sub id = ' + str(subid))
-                fmri_data = loadmat(subfile)['dtseries']
+            outfile = self.data_dir + '/processed/' + subid + 'pca_reduced.npz'
 
-                # Preprocess fMRI, replace Nan by avg of cortical activity at
-                # that time point and standardize this should be interesting
-                imp = Imputer(missing_values='NaN', strategy='mean', axis=0)
-                fmri_data = imp.fit_transform(fmri_data)
-                fmri_data = StandardScaler().fit_transform(fmri_data)
+            if os.path.isfile(outfile):
+                a = sp.load(outfile)
+                fmri_data = a['fmri_data']
 
-                if reduce_dim != None:
-                    fmri_data = pca.fit_transform(fmri_data)
+            else:
+                if os.path.isfile(subfile):
+                    print('Reading sub id = ' + str(subid))
+                    fmri_data = loadmat(subfile)['dtseries']
 
-                self.subids.append(subid)
-                self.data.append(fmri_data)
+                    # Preprocess fMRI, replace Nan by avg of cortical activity at
+                    # that time point and standardize this should be interesting
+                    imp = Imputer(
+                        missing_values='NaN', strategy='mean', axis=0)
+                    fmri_data = imp.fit_transform(fmri_data)
+                    fmri_data = StandardScaler().fit_transform(fmri_data)
+
+                    if reduce_dim != None:
+                        fmri_data = pca.fit_transform(fmri_data)
+
+                    # Save the data for faster processing
+                    sp.savez_compressed(outfile, fmri_data=fmri_data)
+
+            self.subids.append(subid)
+            self.data.append(fmri_data)
 
     def read_cog_scores(self, cogscore_file):
         """ Read cognitive scores from csv file """

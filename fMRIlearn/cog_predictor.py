@@ -176,7 +176,7 @@ class CogPred(BaseEstimator, bfpData):
         history = self.hybrid_cnn.fit(
             X,
             y,
-            batch_size=10,
+            batch_size=20,
             epochs=20,
             verbose=1,
             shuffle=True,
