@@ -52,10 +52,10 @@ class bfpData():
             subid = subfile.replace('_rest_bold.32k.GOrd.mat', '')
             subid = subid.replace(self.data_dir + '/', '')
 
+            outfile = self.data_dir + '/processed/' + subid + 'pca_reduced.npz'
+
             if int_subid:
                 subid = int(subid)
-
-            outfile = self.data_dir + '/processed/' + subid + 'pca_reduced.npz'
 
             if os.path.isfile(outfile):
                 a = sp.load(outfile)
