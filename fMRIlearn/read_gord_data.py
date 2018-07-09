@@ -60,6 +60,7 @@ class bfpData():
             if os.path.isfile(outfile):
                 a = sp.load(outfile)
                 fmri_data = a['fmri_data']
+                print('Fast Read sub id = ' + str(subid))
 
             else:
                 if os.path.isfile(subfile):

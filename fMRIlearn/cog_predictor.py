@@ -68,29 +68,48 @@ class CogPred(BaseEstimator, bfpData):
                                      self.data[0].shape[1]))
         subn = 0
         for data in self.data:
-            for t_ind in np.arange(data.shape[1]):
+            sqr_file = self.data_dir + '/processed/' + self.subids[subn] + 'mapped2sqr.npz'
 
-                # Map Left Hemisphere data
-                lh_data = data[:self.nvert_hemi, t_ind][self.sqr_map_ind]
-                sqr_data_left[subn, :, :, t_ind] = griddata(
-                    self.sqrmap, lh_data, sqr_inds)
+            if os.path.isfile(sqr_file):
+                a = np.load(sqr_file)
+                sqr_data_right[subn, :, :, :] = a['sqr_right']
+                sqr_data_left[subn, :, :, :] = a['sqr_left']
+                noncortical_data[subn, :, :] = a['noncortical']
+                print('loaded sqr map subno:%d, subid:%d' %
+                      (subn, self.subids[subn]))
+            else:
+                for t_ind in np.arange(data.shape[1]):
 
-                # Map Right Hemisphere data
-                rh_data = data[self.nvert_hemi:2 * self.nvert_hemi, t_ind]
-                rh_data = rh_data[self.sqr_map_ind]
+                    # Map Left Hemisphere data
+                    lh_data = data[:self.nvert_hemi, t_ind][self.sqr_map_ind]
+                    sqr_data_left[subn, :, :, t_ind] = griddata(
+                        self.sqrmap, lh_data, sqr_inds)
 
-                sqr_data_right[subn, :, :, t_ind] = griddata(
-                    self.sqrmap, rh_data, sqr_inds)
-                print('.', end='', flush=True)
+                    # Map Right Hemisphere data
+                    rh_data = data[self.nvert_hemi:2 * self.nvert_hemi, t_ind]
+                    rh_data = rh_data[self.sqr_map_ind]
 
-            print('subno = %d' % subn)
+                    sqr_data_right[subn, :, :, t_ind] = griddata(
+                        self.sqrmap, rh_data, sqr_inds)
+                    print('.', end='', flush=True)
 
-            noncortical_data[subn, :, :] = np.nan_to_num(
-                data[2 * self.nvert_hemi:, ])
-            self.data[subn] = 0
+                print('subno:%d, subid:%d' % (subn, self.subids[subn]))
 
-            sqr_data_right = np.nan_to_num(sqr_data_right)
-            sqr_data_left = np.nan_to_num(sqr_data_left)
+                noncortical_data[subn, :, :] = np.nan_to_num(
+                    data[2 * self.nvert_hemi:, ])
+                self.data[subn] = 0
+
+                sqr_data_right[subn, :, :, :] = np.nan_to_num(
+                    sqr_data_right[subn, :, :, :])
+                sqr_data_left[subn, :, :, :] = np.nan_to_num(
+                    sqr_data_left[subn, :, :, :])
+
+                np.savez_compressed(
+                    self.data_dir + '/processed/' + self.subids[subn] +
+                    'mapped2sqr.npz',
+                    sqr_left=sqr_data_right[subn, :, :, :],
+                    sqr_right=sqr_data_right[subn, :, :, :],
+                    noncortical=noncortical_data[subn, :, :])
 
             subn += 1
 
@@ -119,7 +138,7 @@ class CogPred(BaseEstimator, bfpData):
 
         # Save the reference subject and ref subject data
         np.savez_compressed(
-            'Refdata_test.npz',
+            self.data_dir + '/processed/Refdata.npz',
             ref_data=self.ref_data,
             ref_subno=self.ref_subno)
 
@@ -131,10 +150,11 @@ class CogPred(BaseEstimator, bfpData):
             print(
                 '=======\n Reference subject is not initialized, loading from a file\n=======\n'
             )
-            a = np.load('Refdata_test.npz')
+            a = np.load(self.data_dir + '/processed/Refdata.npz')
             self.ref_subno = a['ref_subno']
             self.ref_data = a['ref_data']
 
+        print('Reference subject is: %d' % self.ref_subno)
         ref = StandardScaler().fit_transform(self.ref_data.T)
 
         for subno in range(len(self.subids)):
@@ -150,7 +170,11 @@ class CogPred(BaseEstimator, bfpData):
         print('Fitting the model')
 
         self.read_fmri(data_dir, reduce_dim=21)
-        self.choose_rep()
+        rep_file = self.data_dir + '/processed/Refdata.npz'
+        if not os.path.isfile(rep_file):
+            print('===Representative subject not chosen\n Doing that now ==')
+            self.choose_rep()
+
         self.sync2rep()
         self.read_cog_scores(csv_file)
         self.map_gord2sqrs()
