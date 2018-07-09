@@ -68,7 +68,8 @@ class CogPred(BaseEstimator, bfpData):
                                      self.data[0].shape[1]))
         subn = 0
         for data in self.data:
-            sqr_file = self.data_dir + '/processed/' + self.subids[subn] + 'mapped2sqr.npz'
+            sqr_file = self.data_dir + '/processed/' + str(
+                self.subids[subn]) + 'mapped2sqr.npz'
 
             if os.path.isfile(sqr_file):
                 a = np.load(sqr_file)
@@ -105,7 +106,7 @@ class CogPred(BaseEstimator, bfpData):
                     sqr_data_left[subn, :, :, :])
 
                 np.savez_compressed(
-                    self.data_dir + '/processed/' + self.subids[subn] +
+                    self.data_dir + '/processed/' + str(self.subids[subn]) +
                     'mapped2sqr.npz',
                     sqr_left=sqr_data_right[subn, :, :, :],
                     sqr_right=sqr_data_right[subn, :, :, :],
