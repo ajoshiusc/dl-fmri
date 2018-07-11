@@ -83,9 +83,8 @@ def get_myvgg(isize):
     dense4 = Dense(256, activation='relu', name='dense4')(dropout3)
 
     # My addition of regression layer
-    out_theta = Dense(1)(dense4)
 
-    return main_input, out_theta
+    return main_input, dense4
 
 
 class CogPred(BaseEstimator, bfpData):
@@ -301,6 +300,8 @@ class CogPred(BaseEstimator, bfpData):
     def get_neural_net(self, isize=[256, 256]):
         """VGG model with one FC layer added at the end for continuous output"""
         main_input, out_theta = get_myvgg(isize)
+
+        out_theta = Dense(1)(out_theta)
 
         print("==Defining Model  ==")
         model = Model(inputs=[main_input], outputs=[out_theta])
