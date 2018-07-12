@@ -29,58 +29,76 @@ K.set_image_data_format('channels_last')  # TF dimension ordering in this code
 # input and cognitive scores as output
 
 
-def get_myvgg(isize):
+def get_myvgg(isize, namestr):
     """ Get VGG type network with 1 FCC regression later at the end """
     img_rows = isize[0]
     img_cols = isize[1]
     #VGG model
     main_input = Input(
-        shape=(isize[0], isize[1], 21), dtype='float32', name='main_input')
+        shape=(isize[0], isize[1], 21),
+        dtype='float32',
+        name=namestr + 'main_input')
     zpad1 = ZeroPadding2D(
-        (1, 1), input_shape=(isize[0], isize[1], 21), name='zpad1')(main_input)
-    conv1 = Conv2D(64, (3, 3), name='conv1', activation='relu')(zpad1)
-    zpad2 = ZeroPadding2D((1, 1), name='zpad2')(conv1)
-    conv2 = Conv2D(64, (3, 3), name='conv2', activation='relu')(zpad2)
-    maxp1 = MaxPooling2D((2, 2), strides=(2, 2), name='maxp1')(conv2)
+        (1, 1), input_shape=(isize[0], isize[1], 21),
+        name=namestr + 'zpad1')(main_input)
+    conv1 = Conv2D(
+        64, (3, 3), name=namestr + 'conv1', activation='relu')(zpad1)
+    zpad2 = ZeroPadding2D((1, 1), name=namestr + 'zpad2')(conv1)
+    conv2 = Conv2D(
+        64, (3, 3), name=namestr + 'conv2', activation='relu')(zpad2)
+    maxp1 = MaxPooling2D((2, 2), strides=(2, 2), name=namestr + 'maxp1')(conv2)
 
-    zpad3 = ZeroPadding2D((1, 1), name='zpad3')(maxp1)
-    conv3 = Conv2D(128, (3, 3), name='conv3', activation='relu')(zpad3)
-    zpad4 = ZeroPadding2D((1, 1), name='zpad4')(conv3)
-    conv4 = Conv2D(128, (3, 3), name='conv4', activation='relu')(zpad4)
-    maxp2 = MaxPooling2D((2, 2), strides=(2, 2), name='maxp2')(conv4)
+    zpad3 = ZeroPadding2D((1, 1), name=namestr + 'zpad3')(maxp1)
+    conv3 = Conv2D(
+        128, (3, 3), name=namestr + 'conv3', activation='relu')(zpad3)
+    zpad4 = ZeroPadding2D((1, 1), name=namestr + 'zpad4')(conv3)
+    conv4 = Conv2D(
+        128, (3, 3), name=namestr + 'conv4', activation='relu')(zpad4)
+    maxp2 = MaxPooling2D((2, 2), strides=(2, 2), name=namestr + 'maxp2')(conv4)
 
-    zpad5 = ZeroPadding2D((1, 1), name='zpad5')(maxp2)
-    conv5 = Conv2D(256, (3, 3), name='conv5', activation='relu')(zpad5)
-    zpad6 = ZeroPadding2D((1, 1), name='zpad6')(conv5)
-    conv6 = Conv2D(256, (3, 3), name='conv6', activation='relu')(zpad6)
-    zpad7 = ZeroPadding2D((1, 1), name='zpad7')(conv6)
-    conv7 = Conv2D(256, (3, 3), name='conv7', activation='relu')(zpad7)
-    maxp3 = MaxPooling2D((2, 2), strides=(2, 2), name='maxp3')(conv7)
+    zpad5 = ZeroPadding2D((1, 1), name=namestr + 'zpad5')(maxp2)
+    conv5 = Conv2D(
+        256, (3, 3), name=namestr + 'conv5', activation='relu')(zpad5)
+    zpad6 = ZeroPadding2D((1, 1), name=namestr + 'zpad6')(conv5)
+    conv6 = Conv2D(
+        256, (3, 3), name=namestr + 'conv6', activation='relu')(zpad6)
+    zpad7 = ZeroPadding2D((1, 1), name=namestr + 'zpad7')(conv6)
+    conv7 = Conv2D(
+        256, (3, 3), name=namestr + 'conv7', activation='relu')(zpad7)
+    maxp3 = MaxPooling2D((2, 2), strides=(2, 2), name=namestr + 'maxp3')(conv7)
 
-    zpad8 = ZeroPadding2D((1, 1), name='zpad8')(maxp3)
-    conv8 = Conv2D(512, (3, 3), name='conv8', activation='relu')(zpad8)
-    zpad9 = ZeroPadding2D((1, 1), name='zpad9')(conv8)
-    conv9 = Conv2D(512, (3, 3), name='conv9', activation='relu')(zpad9)
-    zpad10 = ZeroPadding2D((1, 1), name='zpad10')(conv9)
-    conv10 = Conv2D(512, (3, 3), name='conv10', activation='relu')(zpad10)
-    maxp4 = MaxPooling2D((2, 2), strides=(2, 2), name='maxp4')(conv10)
+    zpad8 = ZeroPadding2D((1, 1), name=namestr + 'zpad8')(maxp3)
+    conv8 = Conv2D(
+        512, (3, 3), name=namestr + 'conv8', activation='relu')(zpad8)
+    zpad9 = ZeroPadding2D((1, 1), name=namestr + 'zpad9')(conv8)
+    conv9 = Conv2D(
+        512, (3, 3), name=namestr + 'conv9', activation='relu')(zpad9)
+    zpad10 = ZeroPadding2D((1, 1), name=namestr + 'zpad10')(conv9)
+    conv10 = Conv2D(
+        512, (3, 3), name=namestr + 'conv10', activation='relu')(zpad10)
+    maxp4 = MaxPooling2D(
+        (2, 2), strides=(2, 2), name=namestr + 'maxp4')(conv10)
 
-    zpad11 = ZeroPadding2D((1, 1), name='zpad11')(maxp4)
-    conv11 = Conv2D(512, (3, 3), name='conv11', activation='relu')(zpad11)
-    zpad12 = ZeroPadding2D((1, 1), name='zpad12')(conv11)
-    conv12 = Conv2D(512, (3, 3), name='conv12', activation='relu')(zpad12)
-    zpad13 = ZeroPadding2D((1, 1), name='zpad13')(conv12)
-    conv13 = Conv2D(512, (3, 3), name='conv13', activation='relu')(zpad13)
-    maxp5 = MaxPooling2D((2, 2), strides=(2, 2), name='maxp5')(conv13)
+    zpad11 = ZeroPadding2D((1, 1), name=namestr + 'zpad11')(maxp4)
+    conv11 = Conv2D(
+        512, (3, 3), name=namestr + 'conv11', activation='relu')(zpad11)
+    zpad12 = ZeroPadding2D((1, 1), name=namestr + 'zpad12')(conv11)
+    conv12 = Conv2D(
+        512, (3, 3), name=namestr + 'conv12', activation='relu')(zpad12)
+    zpad13 = ZeroPadding2D((1, 1), name=namestr + 'zpad13')(conv12)
+    conv13 = Conv2D(
+        512, (3, 3), name=namestr + 'conv13', activation='relu')(zpad13)
+    maxp5 = MaxPooling2D(
+        (2, 2), strides=(2, 2), name=namestr + 'maxp5')(conv13)
 
-    flatten = Flatten(name='flatten')(maxp5)
-    dense1 = Dense(4096, activation='relu', name='dense1')(flatten)
-    dropout1 = Dropout(0.5, name='dropout1')(dense1)
-    dense2 = Dense(4096, activation='relu', name='dense2')(dropout1)
-    dropout2 = Dropout(0.5, name='dropout2')(dense2)
-    dense3 = Dense(1000, activation='relu', name='dense3')(dropout2)
-    dropout3 = Dropout(0.5, name='dropout3')(dense3)
-    dense4 = Dense(256, activation='relu', name='dense4')(dropout3)
+    flatten = Flatten(name=namestr + 'flatten')(maxp5)
+    dense1 = Dense(4096, activation='relu', name=namestr + 'dense1')(flatten)
+    dropout1 = Dropout(0.5, name=namestr + 'dropout1')(dense1)
+    dense2 = Dense(4096, activation='relu', name=namestr + 'dense2')(dropout1)
+    dropout2 = Dropout(0.5, name=namestr + 'dropout2')(dense2)
+    dense3 = Dense(1000, activation='relu', name=namestr + 'dense3')(dropout2)
+    dropout3 = Dropout(0.5, name=namestr + 'dropout3')(dense3)
+    dense4 = Dense(256, activation='relu', name=namestr + 'dense4')(dropout3)
 
     # My addition of regression layer
 
@@ -250,7 +268,7 @@ class CogPred(BaseEstimator, bfpData):
         X[2] = X[2][y > 0, :, :]
         y = y[y > 0] / 50.0
         # y = y[:]
-        X = X[0].astype('float32')
+        X = [X[0].astype('float32'), X[1].astype('float32')]
         y = y.astype('float32')
 
         print('training with this data\n')
@@ -290,7 +308,10 @@ class CogPred(BaseEstimator, bfpData):
         self.sync2rep()
         self.read_cog_scores(csv_file)
         self.map_gord2sqrs()
-        X = self.nn_ipdata[0].astype('float32')
+        X = [
+            self.nn_ipdata[0].astype('float32'),
+            self.nn_ipdata[1].astype('float32')
+        ]
         y = self.cog_scores['ADHD Index'][self.subids].get_values() / 50.0
         y = y.astype('float32')
         ypred = mod.predict(X, verbose=1)
@@ -299,12 +320,13 @@ class CogPred(BaseEstimator, bfpData):
 
     def get_neural_net(self, isize=[256, 256]):
         """VGG model with one FC layer added at the end for continuous output"""
-        main_input, out_theta = get_myvgg(isize)
-
-        out_theta = Dense(1)(out_theta)
+        lh_input, lh_out = get_myvgg(isize, 'lh_')
+        rh_input, rh_out = get_myvgg(isize, 'rh_')
+        cc = concatenate([lh_out, rh_out], axis=-1)
+        out_theta = Dense(1)(cc)
 
         print("==Defining Model  ==")
-        model = Model(inputs=[main_input], outputs=[out_theta])
+        model = Model(inputs=[lh_input, rh_input], outputs=[out_theta])
         sgd = SGD(lr=0.05, decay=1e-6, momentum=0.9, nesterov=True)
 
         model.compile(
