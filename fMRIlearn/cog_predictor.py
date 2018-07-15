@@ -174,7 +174,6 @@ class CogPred(BaseEstimator, bfpData):
 
                 noncortical_data[subn, :, :] = np.nan_to_num(
                     data[2 * self.nvert_hemi:, ])
-                self.data[subn] = 0
 
                 sqr_data_right[subn, :, :, :] = np.nan_to_num(
                     sqr_data_right[subn, :, :, :])
@@ -188,6 +187,7 @@ class CogPred(BaseEstimator, bfpData):
                     sqr_right=sqr_data_right[subn, :, :, :],
                     noncortical=noncortical_data[subn, :, :])
 
+            self.data[subn] = 0
             subn += 1
 
         self.nn_ipdata = [sqr_data_left, sqr_data_right, noncortical_data]
@@ -261,12 +261,12 @@ class CogPred(BaseEstimator, bfpData):
 
         X = self.nn_ipdata
         #        y=np.array([11,12,13,14,15]).reshape((5,1))
-        y = self.cog_scores['ADHD Index'][self.subids].get_values()
+        y = self.cog_scores['Performance IQ'][self.subids].get_values()
 
         X[0] = X[0][y > 0, :, :, :]
         X[1] = X[1][y > 0, :, :, :]
         X[2] = X[2][y > 0, :, :]
-        y = y[y > 0] / 50.0
+        y = y[y > 0] / 20.0
         # y = y[:]
         X = [X[0].astype('float32'), X[1].astype('float32')]
         y = y.astype('float32')
@@ -277,8 +277,8 @@ class CogPred(BaseEstimator, bfpData):
         history = self.hybrid_cnn.fit(
             X,
             y,
-            batch_size=20,
-            epochs=20,
+            batch_size=2,
+            epochs=2,
             verbose=1,
             shuffle=True,
             validation_split=0.2,
@@ -312,7 +312,7 @@ class CogPred(BaseEstimator, bfpData):
             self.nn_ipdata[0].astype('float32'),
             self.nn_ipdata[1].astype('float32')
         ]
-        y = self.cog_scores['ADHD Index'][self.subids].get_values() / 50.0
+        y = self.cog_scores['Performance IQ'][self.subids].get_values() / 20.0
         y = y.astype('float32')
         ypred = mod.predict(X, verbose=1)
 
@@ -327,9 +327,9 @@ class CogPred(BaseEstimator, bfpData):
 
         print("==Defining Model  ==")
         model = Model(inputs=[lh_input, rh_input], outputs=[out_theta])
-        sgd = SGD(lr=0.05, decay=1e-6, momentum=0.9, nesterov=True)
+        sgd = SGD(lr=0.002, decay=1e-6, momentum=0.9, nesterov=True)
 
         model.compile(
-            optimizer=sgd, loss=losses.mean_squared_error, metrics=['mse'])
+            optimizer='sgd', loss=losses.mean_squared_error, metrics=['mse'])
 
         return model
