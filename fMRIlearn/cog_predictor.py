@@ -277,8 +277,8 @@ class CogPred(BaseEstimator, bfpData):
         history = self.hybrid_cnn.fit(
             X,
             y,
-            batch_size=2,
-            epochs=2,
+            batch_size=10,
+            epochs=5,
             verbose=1,
             shuffle=True,
             validation_split=0.2,
@@ -330,6 +330,6 @@ class CogPred(BaseEstimator, bfpData):
         sgd = SGD(lr=0.002, decay=1e-6, momentum=0.9, nesterov=True)
 
         model.compile(
-            optimizer='sgd', loss=losses.mean_squared_error, metrics=['mse'])
+            optimizer=sgd, loss=losses.mean_squared_error, metrics=['mse'])
 
         return model
