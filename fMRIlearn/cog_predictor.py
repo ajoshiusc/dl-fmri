@@ -110,7 +110,7 @@ class CogPred(BaseEstimator, bfpData):
 
     def __init__(self, bfp_dir):
         # read the flat maps for both hemispheres
-        bfpData.__init__(self)
+        bfpData.__init__(self, bfp_dir)
         dat = loadmat(os.path.join(bfp_dir, 'supp_data', 'sqrmap.mat'))
         self.sqrmap = dat['sqrmap']
         # for converting indices from matlab to python, subtract -1
@@ -240,9 +240,11 @@ class CogPred(BaseEstimator, bfpData):
             sub_sync, _ = brainSync(ref, sub)
             self.data[subno] = sub_sync.T
 
+
+
+
     def train_model(self, data_dir, csv_file):
-        """ X: data in grayordinates of shape Vert x Time x Subj
-            y: cognitive scores"""
+        """ data dir and csv file as input"""
         #     self.map_gord2sqrs(X)
         print('Fitting the model')
 
@@ -261,7 +263,7 @@ class CogPred(BaseEstimator, bfpData):
 
         X = self.nn_ipdata
         #        y=np.array([11,12,13,14,15]).reshape((5,1))
-        y = self.cog_scores['Performance IQ'][self.subids].get_values()
+        y = self.cog_scores['Verbal IQ'][self.subids].get_values()
 
         X[0] = X[0][y > 0, :, :, :]
         X[1] = X[1][y > 0, :, :, :]
@@ -278,7 +280,7 @@ class CogPred(BaseEstimator, bfpData):
             X,
             y,
             batch_size=10,
-            epochs=5,
+            epochs=50,
             verbose=1,
             shuffle=True,
             validation_split=0.2,
@@ -312,7 +314,7 @@ class CogPred(BaseEstimator, bfpData):
             self.nn_ipdata[0].astype('float32'),
             self.nn_ipdata[1].astype('float32')
         ]
-        y = self.cog_scores['Performance IQ'][self.subids].get_values() / 20.0
+        y = self.cog_scores['Verbal IQ'][self.subids].get_values() / 20.0
         y = y.astype('float32')
         ypred = mod.predict(X, verbose=1)
 
@@ -327,7 +329,7 @@ class CogPred(BaseEstimator, bfpData):
 
         print("==Defining Model  ==")
         model = Model(inputs=[lh_input, rh_input], outputs=[out_theta])
-        sgd = SGD(lr=0.002, decay=1e-6, momentum=0.9, nesterov=True)
+        sgd = SGD(lr=1e-5, decay=1e-6, momentum=0.9, nesterov=True)
 
         model.compile(
             optimizer=sgd, loss=losses.mean_squared_error, metrics=['mse'])

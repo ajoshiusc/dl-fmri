@@ -5,7 +5,7 @@ Created on Sun Jun  3 00:16:45 2018
 
 @author: ajoshi
 """
-
+import numpy as np
 import nilearn as nl
 import os
 import glob
@@ -16,10 +16,28 @@ from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler, Imputer
 
 
+def roiwise_timeseries(fmri_data, gord_label):
+    """ fmri_data : nT x nVert"""
+    lab_list = np.unique(gord_label)
+    lab_list = np.setdiff1d(lab_list, [0])  # remove background roi
+    lab_list = lab_list[~np.isnan(lab_list)]  # remove nans
+
+    n_rois = len(lab_list)
+    n_time = fmri_data.shape[1]
+
+    out_data = np.zeros((n_rois, n_time))
+
+    for roino, roiid in enumerate(lab_list):
+        out_data[roino, :] = sp.stats.trim_mean(
+            fmri_data[gord_label == roiid, :], proportiontocut=.1, axis=0)
+
+    return out_data
+
+
 class bfpData():
     """ This class manages BFP data set"""
 
-    def __init__(self):
+    def __init__(self, bfp_dir):
         # initialization
         self.rfmri = 0
         self.cog_scores = 0
@@ -30,14 +48,18 @@ class bfpData():
         self.data = None
         self.dirlst = None
         print("Read flat maps for left and right hemispheres.")
+        dat = loadmat(
+            os.path.join(bfp_dir, 'supp_data', 'USCBrain_grayord_labels.mat'))
+        self.gord_label = dat['labels'].squeeze()
 
     def get_data(self):
         """get the rfMRI data"""
         return self.data, self.cog_scores, self.subids
 
-    def read_fmri(self, data_dir, reduce_dim=None, int_subid=1):
+    def read_fmri(self, data_dir, reduce_dim=None, int_subid=1, roiwise=1):
         """ Read fMRI data from disk
-            If reduce_dim = None, no dimesionality reduction is performed"""
+            If reduce_dim = None, no dimesionality reduction is performed
+            data is Time x Vertices x sub"""
         self.data_dir = data_dir
         self.dirlst = glob.glob(self.data_dir + '/*.mat')
         self.data = list()
@@ -76,9 +98,11 @@ class bfpData():
 
                     if reduce_dim != None:
                         fmri_data = pca.fit_transform(fmri_data)
+                        sp.savez_compressed(outfile, fmri_data=fmri_data)
 
-                    # Save the data for faster processing
-                    sp.savez_compressed(outfile, fmri_data=fmri_data)
+                    if roiwise > 0:
+                        fmri_data = roiwise_timeseries(fmri_data,
+                                                       self.gord_label)
 
             self.subids.append(subid)
             self.data.append(fmri_data)
