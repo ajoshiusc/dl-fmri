@@ -15,20 +15,23 @@ import fMRIlearn.cog_predictor as cpred
 def main():
     """ Main script that calls the functions object"""
     bfp_dir = '/home/ajoshi/coding_ground/bfp'
-    train_data_dir = '/deneb_disk/ADHD_Peking_bfp/training' #ADHD_Peking_bfp/training'
+    train_data_dir = '/deneb_disk/ADHD_Peking_bfp/training'  #ADHD_Peking_bfp/training'
     test_data_dir = '/deneb_disk/ADHD_Peking_bfp/testing'
 
     csv_file = '/deneb_disk/ADHD_Peking_bfp/Peking_all_phenotypic.csv'
 
     cp = cpred.CogPred(bfp_dir)
 
-    #cp.train_model(data_dir=train_data_dir, csv_file=csv_file)
+    cp.train_model(data_dir=train_data_dir, csv_file=csv_file)
     y, ypred = cp.predict(data_dir=test_data_dir, csv_file=csv_file)
 
-    print(y, ypred)
+    for i in range(y.shape[0]):
+        print('%g, %g' % (y[i], ypred[i]))
+
     np.savez_compressed('pred_res.npz', y=y, ypred=ypred)
 
-    print('Correlation between predicted and actual values: ', np.corrcoef(y,ypred.squeeze()))
+    print('Correlation between predicted and actual values: ',
+          np.corrcoef(y.T, ypred.T))
 
 
 if __name__ == "__main__":

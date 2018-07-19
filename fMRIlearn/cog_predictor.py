@@ -11,7 +11,8 @@ import itertools
 import numpy as np
 from scipy.io import loadmat
 from scipy.interpolate import griddata
-from keras.layers import Input, Conv2D, concatenate, MaxPooling2D, Flatten, Dense, ZeroPadding2D, Dropout
+from keras.layers import (Input, Conv2D, concatenate, MaxPooling2D, Flatten,
+                          Dense, ZeroPadding2D, Dropout)
 from keras.models import Model
 from keras.optimizers import SGD
 from keras.callbacks import ModelCheckpoint
@@ -20,6 +21,7 @@ from keras import losses
 import matplotlib.pyplot as plt
 from sklearn.base import BaseEstimator
 from sklearn.preprocessing import StandardScaler
+from sklearn.externals import joblib
 from fMRIlearn.read_gord_data import bfpData
 from fMRIlearn.brainsync import brainSync
 
@@ -31,8 +33,6 @@ K.set_image_data_format('channels_last')  # TF dimension ordering in this code
 
 def get_myvgg(isize, namestr):
     """ Get VGG type network with 1 FCC regression later at the end """
-    img_rows = isize[0]
-    img_cols = isize[1]
     #VGG model
     main_input = Input(
         shape=(isize[0], isize[1], 21),
@@ -240,9 +240,6 @@ class CogPred(BaseEstimator, bfpData):
             sub_sync, _ = brainSync(ref, sub)
             self.data[subno] = sub_sync.T
 
-
-
-
     def train_model(self, data_dir, csv_file):
         """ data dir and csv file as input"""
         #     self.map_gord2sqrs(X)
@@ -272,6 +269,12 @@ class CogPred(BaseEstimator, bfpData):
         # y = y[:]
         X = [X[0].astype('float32'), X[1].astype('float32')]
         y = y.astype('float32')
+
+        # Standrad scalar applied to the cognitive scores data
+        sc = StandardScaler()
+        y = sc.fit_transform(y.reshape(-1, 1))
+
+        joblib.dump(sc, 'cogscores_scaler.pkl')  # save to disk
 
         print('training with this data\n')
         print(y)
@@ -314,9 +317,16 @@ class CogPred(BaseEstimator, bfpData):
             self.nn_ipdata[0].astype('float32'),
             self.nn_ipdata[1].astype('float32')
         ]
+
+        # apply the standard scalar predicted
+
         y = self.cog_scores['Verbal IQ'][self.subids].get_values() / 20.0
-        y = y.astype('float32')
-        ypred = mod.predict(X, verbose=1)
+        sc = joblib.load('cogscores_scaler.pkl')
+
+        y = y.astype('float32').reshape(-1, 1)
+
+        ypred = mod.predict(X, verbose=1) 
+        ypred = sc.inverse_transform(ypred.reshape(-1, 1))
 
         return y, ypred
 
@@ -325,11 +335,12 @@ class CogPred(BaseEstimator, bfpData):
         lh_input, lh_out = get_myvgg(isize, 'lh_')
         rh_input, rh_out = get_myvgg(isize, 'rh_')
         cc = concatenate([lh_out, rh_out], axis=-1)
+        cc = Dense(64, activation='relu')(cc)
         out_theta = Dense(1)(cc)
 
         print("==Defining Model  ==")
         model = Model(inputs=[lh_input, rh_input], outputs=[out_theta])
-        sgd = SGD(lr=1e-5, decay=1e-6, momentum=0.9, nesterov=True)
+        sgd = SGD(lr=1e-5) #, decay=1e-6, momentum=0.9, nesterov=True)
 
         model.compile(
             optimizer=sgd, loss=losses.mean_squared_error, metrics=['mse'])
