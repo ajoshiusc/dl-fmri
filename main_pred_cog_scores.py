@@ -22,13 +22,13 @@ def main():
 
     cp = cpred.CogPred(bfp_dir)
 
-    cp.train_model(data_dir=train_data_dir, csv_file=csv_file)
+    #cp.train_model(data_dir=train_data_dir, csv_file=csv_file)
     y, ypred = cp.predict(data_dir=test_data_dir, csv_file=csv_file)
 
     print(y, ypred)
     np.savez_compressed('pred_res.npz', y=y, ypred=ypred)
 
-    print('Model Trained')
+    print('Correlation between predicted and actual values: ', np.corrcoef(y,ypred.squeeze()))
 
 
 if __name__ == "__main__":
