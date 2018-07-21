@@ -6,7 +6,6 @@ Created on Sun Jun  3 00:16:45 2018
 @author: ajoshi
 """
 import numpy as np
-import nilearn as nl
 import os
 import glob
 import scipy as sp

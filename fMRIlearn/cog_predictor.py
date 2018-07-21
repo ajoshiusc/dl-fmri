@@ -340,7 +340,7 @@ class CogPred(BaseEstimator, bfpData):
         self.map_gord2sqrs()
 
         model_checkpoint = ModelCheckpoint(
-            'weights3d_epochs20_batch15_2.h5', monitor='val_loss', save_best_only=True)
+            'weights3d_epochs20_batch5.h5', monitor='val_loss', save_best_only=True)
 
         X = self.nn_ipdata
         #        y=np.array([11,12,13,14,15]).reshape((5,1))
@@ -368,7 +368,7 @@ class CogPred(BaseEstimator, bfpData):
         history = self.hybrid_cnn.fit(
             X,
             y,
-            batch_size=15,
+            batch_size=5,
             epochs=50,
             verbose=1,
             shuffle=True,
@@ -393,7 +393,7 @@ class CogPred(BaseEstimator, bfpData):
     def predict(self, data_dir, csv_file):
 
 #        mod = self.get_neural_net()
-        self.hybrid_cnn.load_weights('weights3d_epochs20_batch15_2.h5')
+        self.hybrid_cnn.load_weights('weights3d_epochs20_batch5.h5')
 
         self.read_fmri(data_dir, reduce_dim=21)
         self.sync2rep()
