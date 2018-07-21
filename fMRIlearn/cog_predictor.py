@@ -14,7 +14,7 @@ from scipy.interpolate import griddata
 from keras.layers import (Input, Conv2D, concatenate, MaxPooling2D, Flatten,
                           Dense, ZeroPadding2D, Dropout)
 from keras.models import Model
-from keras.optimizers import SGD
+from keras.optimizers import SGD, adam
 from keras.callbacks import ModelCheckpoint
 from keras import backend as K
 from keras import losses
@@ -29,6 +29,90 @@ K.set_image_data_format('channels_last')  # TF dimension ordering in this code
 
 # Define cognitive predictor regressor This takes fMRI grayordinate data as
 # input and cognitive scores as output
+
+
+def get_mynet(isize, namestr):
+    """ Get VGG type network with 1 FCC regression later at the end """
+    #my model
+    inputs = Input(
+        shape=(isize[0], isize[1], 21),
+        dtype='float32',
+        name=namestr + 'main_input')
+    conv1 = Conv2D(
+        64,
+        3,
+        activation='relu',
+        padding='same',
+        kernel_initializer='he_normal')(inputs)
+    conv1 = Conv2D(
+        64,
+        3,
+        activation='relu',
+        padding='same',
+        kernel_initializer='he_normal')(conv1)
+    pool1 = MaxPooling2D(pool_size=(2, 2))(conv1)
+    conv2 = Conv2D(
+        128,
+        3,
+        activation='relu',
+        padding='same',
+        kernel_initializer='he_normal')(pool1)
+    conv2 = Conv2D(
+        128,
+        3,
+        activation='relu',
+        padding='same',
+        kernel_initializer='he_normal')(conv2)
+    pool2 = MaxPooling2D(pool_size=(2, 2))(conv2)
+    conv3 = Conv2D(
+        256,
+        3,
+        activation='relu',
+        padding='same',
+        kernel_initializer='he_normal')(pool2)
+    conv3 = Conv2D(
+        256,
+        3,
+        activation='relu',
+        padding='same',
+        kernel_initializer='he_normal')(conv3)
+    pool3 = MaxPooling2D(pool_size=(2, 2))(conv3)
+    conv4 = Conv2D(
+        512,
+        3,
+        activation='relu',
+        padding='same',
+        kernel_initializer='he_normal')(pool3)
+    conv4 = Conv2D(
+        512,
+        3,
+        activation='relu',
+        padding='same',
+        kernel_initializer='he_normal')(conv4)
+    drop4 = Dropout(0.5)(conv4)
+    pool4 = MaxPooling2D(pool_size=(2, 2))(drop4)
+
+    conv5 = Conv2D(
+        1024,
+        3,
+        activation='relu',
+        padding='same',
+        kernel_initializer='he_normal')(pool4)
+    conv5 = Conv2D(
+        1024,
+        3,
+        activation='relu',
+        padding='same',
+        kernel_initializer='he_normal')(conv5)
+    drop5 = Dropout(0.5)(conv5)
+
+    # My addition of regression layer
+    flatten = Flatten(name=namestr + 'flatten')(drop5)
+    dense1 = Dense(512, activation='relu', name=namestr + 'dense1')(flatten)
+    dropout3 = Dropout(0.5, name=namestr + 'dropout3')(dense1)
+    dense4 = Dense(256, activation='relu', name=namestr + 'dense4')(dropout3)
+
+    return inputs, dense4
 
 
 def get_myvgg(isize, namestr):
@@ -256,11 +340,11 @@ class CogPred(BaseEstimator, bfpData):
         self.map_gord2sqrs()
 
         model_checkpoint = ModelCheckpoint(
-            'weights3d_test.h5', monitor='val_loss', save_best_only=True)
+            'weights3d_epochs20_batch15_2.h5', monitor='val_loss', save_best_only=True)
 
         X = self.nn_ipdata
         #        y=np.array([11,12,13,14,15]).reshape((5,1))
-        y = self.cog_scores['Verbal IQ'][self.subids].get_values()
+        y = self.cog_scores['ADHD Index'][self.subids].get_values()
 
         X[0] = X[0][y > 0, :, :, :]
         X[1] = X[1][y > 0, :, :, :]
@@ -278,12 +362,14 @@ class CogPred(BaseEstimator, bfpData):
 
         print('training with this data\n')
         print(y)
+    #    self.hybrid_cnn.load_weights('weights3d_epochs20_batch15.h5')
+
 
         history = self.hybrid_cnn.fit(
             X,
             y,
-            batch_size=10,
-            epochs=20,
+            batch_size=15,
+            epochs=50,
             verbose=1,
             shuffle=True,
             validation_split=0.2,
@@ -306,8 +392,8 @@ class CogPred(BaseEstimator, bfpData):
 
     def predict(self, data_dir, csv_file):
 
-        mod = self.get_neural_net()
-        mod.load_weights('weights3d_test.h5')
+#        mod = self.get_neural_net()
+        self.hybrid_cnn.load_weights('weights3d_epochs20_batch15_2.h5')
 
         self.read_fmri(data_dir, reduce_dim=21)
         self.sync2rep()
@@ -320,29 +406,29 @@ class CogPred(BaseEstimator, bfpData):
 
         # apply the standard scalar predicted
 
-        y = self.cog_scores['Verbal IQ'][self.subids].get_values() / 20.0
+        y = self.cog_scores['ADHD Index'][self.subids].get_values() / 20.0
         sc = joblib.load('cogscores_scaler.pkl')
 
         y = y.astype('float32').reshape(-1, 1)
 
-        ypred = mod.predict(X, verbose=1) 
+        ypred = self.hybrid_cnn.predict(X, verbose=1)
         ypred = sc.inverse_transform(ypred.reshape(-1, 1))
 
         return y, ypred
 
     def get_neural_net(self, isize=[256, 256]):
         """VGG model with one FC layer added at the end for continuous output"""
-        lh_input, lh_out = get_myvgg(isize, 'lh_')
-        rh_input, rh_out = get_myvgg(isize, 'rh_')
+        lh_input, lh_out = get_mynet(isize, 'lh_')
+        rh_input, rh_out = get_mynet(isize, 'rh_')
         cc = concatenate([lh_out, rh_out], axis=-1)
         cc = Dense(64, activation='relu')(cc)
         out_theta = Dense(1)(cc)
 
         print("==Defining Model  ==")
         model = Model(inputs=[lh_input, rh_input], outputs=[out_theta])
-        sgd = SGD(lr=1e-5) #, decay=1e-6, momentum=0.9, nesterov=True)
+        optz = adam(lr=1e-4)#, decay=1e-6, momentum=0.9, nesterov=True)
 
         model.compile(
-            optimizer=sgd, loss=losses.mean_squared_error, metrics=['mse'])
+            optimizer=optz, loss=losses.mean_squared_error, metrics=['mse'])
 
         return model

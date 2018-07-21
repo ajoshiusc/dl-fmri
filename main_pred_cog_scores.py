@@ -31,7 +31,7 @@ def main():
     np.savez_compressed('pred_res.npz', y=y, ypred=ypred)
 
     print('Correlation between predicted and actual values: ',
-          np.corrcoef(y.T, ypred.T))
+          np.corrcoef(y[y > 0].T, ypred[y > 0].T))
 
 
 if __name__ == "__main__":
