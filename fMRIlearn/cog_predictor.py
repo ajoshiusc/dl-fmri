@@ -340,30 +340,41 @@ class CogPred(BaseEstimator, bfpData):
         self.map_gord2sqrs()
 
         model_checkpoint = ModelCheckpoint(
-            'weights3d_epochs20_batch5.h5', monitor='val_loss', save_best_only=True)
+            'weights3d_epochs50_batch5.h5',
+            monitor='val_loss',
+            save_best_only=True)
 
         X = self.nn_ipdata
-        #        y=np.array([11,12,13,14,15]).reshape((5,1))
-        y = self.cog_scores['ADHD Index'][self.subids].get_values()
+        self.nn_ipdata = None
 
-        X[0] = X[0][y > 0, :, :, :]
-        X[1] = X[1][y > 0, :, :, :]
-        X[2] = X[2][y > 0, :, :]
-        y = y[y > 0] / 20.0
+        y = np.zeros((len(self.subids), 3))
+        y[:, 0] = self.cog_scores['Verbal IQ'][self.subids].get_values()
+        y[:, 1] = self.cog_scores['Performance IQ'][self.subids].get_values()
+        y[:, 2] = self.cog_scores['ADHD Index'][self.subids].get_values()
+
+        rowid = y[:, 2] > 0
+        X[0] = X[0][rowid, :, :, :]
+        X[1] = X[1][rowid, :, :, :]
+        X[2] = X[2][rowid, :, :]
+
+        y = y[rowid, :]
         # y = y[:]
-        X = [X[0].astype('float32'), X[1].astype('float32')]
+        X = [
+            X[0].astype('float32'), X[1].astype('float32'),
+            X[2].astype('float32')
+        ]
+
         y = y.astype('float32')
 
         # Standrad scalar applied to the cognitive scores data
         sc = StandardScaler()
-        y = sc.fit_transform(y.reshape(-1, 1))
+        y = sc.fit_transform(y)
 
         joblib.dump(sc, 'cogscores_scaler.pkl')  # save to disk
 
         print('training with this data\n')
         print(y)
-    #    self.hybrid_cnn.load_weights('weights3d_epochs20_batch15.h5')
-
+        #    self.hybrid_cnn.load_weights('weights3d_epochs20_batch15.h5')
 
         history = self.hybrid_cnn.fit(
             X,
@@ -392,8 +403,8 @@ class CogPred(BaseEstimator, bfpData):
 
     def predict(self, data_dir, csv_file):
 
-#        mod = self.get_neural_net()
-        self.hybrid_cnn.load_weights('weights3d_epochs20_batch5.h5')
+        #        mod = self.get_neural_net()
+        self.hybrid_cnn.load_weights('weights3d_epochs50_batch5.h5')
 
         self.read_fmri(data_dir, reduce_dim=21)
         self.sync2rep()
@@ -401,32 +412,42 @@ class CogPred(BaseEstimator, bfpData):
         self.map_gord2sqrs()
         X = [
             self.nn_ipdata[0].astype('float32'),
-            self.nn_ipdata[1].astype('float32')
+            self.nn_ipdata[1].astype('float32'),
+            self.nn_ipdata[2].astype('float32')
         ]
 
         # apply the standard scalar predicted
+        y = np.zeros((len(self.subids), 3))
+        y[:, 0] = self.cog_scores['Verbal IQ'][self.subids].get_values()
+        y[:, 1] = self.cog_scores['Performance IQ'][self.subids].get_values()
+        y[:, 2] = self.cog_scores['ADHD Index'][self.subids].get_values()
 
-        y = self.cog_scores['ADHD Index'][self.subids].get_values() / 20.0
         sc = joblib.load('cogscores_scaler.pkl')
 
-        y = y.astype('float32').reshape(-1, 1)
+        y = y.astype('float32')
 
         ypred = self.hybrid_cnn.predict(X, verbose=1)
-        ypred = sc.inverse_transform(ypred.reshape(-1, 1))
+        ypred = sc.inverse_transform(ypred)
 
         return y, ypred
 
-    def get_neural_net(self, isize=[256, 256]):
+    def get_neural_net(self, isize=[256, 256], subc_size=31870):
         """VGG model with one FC layer added at the end for continuous output"""
         lh_input, lh_out = get_mynet(isize, 'lh_')
         rh_input, rh_out = get_mynet(isize, 'rh_')
-        cc = concatenate([lh_out, rh_out], axis=-1)
+
+        subco_input = Input(shape=(subc_size, 21), dtype='float32')
+        fc = Flatten()(subco_input)
+        subco_out = Dense(256, activation='relu')(fc)
+
+        cc = concatenate([lh_out, rh_out, subco_out], axis=-1)
         cc = Dense(64, activation='relu')(cc)
-        out_theta = Dense(1)(cc)
+        out_theta = Dense(3)(cc)
 
         print("==Defining Model  ==")
-        model = Model(inputs=[lh_input, rh_input], outputs=[out_theta])
-        optz = adam(lr=1e-4)#, decay=1e-6, momentum=0.9, nesterov=True)
+        model = Model(
+            inputs=[lh_input, rh_input, subco_input], outputs=[out_theta])
+        optz = adam(lr=1e-4)  #, decay=1e-6, momentum=0.9, nesterov=True)
 
         model.compile(
             optimizer=optz, loss=losses.mean_squared_error, metrics=['mse'])
