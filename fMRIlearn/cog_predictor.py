@@ -35,7 +35,7 @@ def get_mynet(isize, namestr):
     """ Get VGG type network with 1 FCC regression later at the end """
     #my model
     inputs = Input(
-        shape=(isize[0], isize[1], 21),
+        shape=(isize[0], isize[1], 36),
         dtype='float32',
         name=namestr + 'main_input')
     conv1 = Conv2D(
@@ -207,7 +207,7 @@ class CogPred(BaseEstimator, bfpData):
         self.ref_subno = None
         self.ref_data = None
 
-    def map_gord2sqrs(self, sqr_size=256):
+    def map_gord2sqrs(self, sqr_size=128):
         """This function maps grayordinate data to square
         flat map flat map of 32k vertices,
         data: data defined on 32k vertices,
@@ -228,7 +228,7 @@ class CogPred(BaseEstimator, bfpData):
                                      self.data[0].shape[1]))
         subn = 0
         for data in self.data:
-            sqr_file = self.data_dir + '/processed/' + str(
+            sqr_file = self.data_dir_fmri + '/processed/' + str(
                 self.subids[subn]) + 'mapped2sqr.npz'
 
             if os.path.isfile(sqr_file):
@@ -265,8 +265,8 @@ class CogPred(BaseEstimator, bfpData):
                     sqr_data_left[subn, :, :, :])
 
                 np.savez_compressed(
-                    self.data_dir + '/processed/' + str(self.subids[subn]) +
-                    'mapped2sqr.npz',
+                    self.data_dir_fmri + '/processed/' + str(self.subids[subn])
+                    + 'mapped2sqr.npz',
                     sqr_left=sqr_data_right[subn, :, :, :],
                     sqr_right=sqr_data_right[subn, :, :, :],
                     noncortical=noncortical_data[subn, :, :])
@@ -285,8 +285,8 @@ class CogPred(BaseEstimator, bfpData):
         dist_mat = np.zeros((nsub, nsub))
 
         for sub1no, sub2no in itertools.product(subs, subs):
-            sub1 = self.data[sub1no]
-            sub2 = self.data[sub2no]
+            sub1 = self.fmri_data[sub1no]
+            sub2 = self.fmri_data[sub2no]
             sub1 = StandardScaler().fit_transform(sub1.T)
             sub2 = StandardScaler().fit_transform(sub2.T)  # .T to make it TxV
             sub2s, _ = brainSync(sub1, sub2)
@@ -295,11 +295,11 @@ class CogPred(BaseEstimator, bfpData):
             print(sub1no, sub2no)
 
         self.ref_subno = np.argmin(np.sum(dist_mat, axis=1))
-        self.ref_data = self.data[self.ref_subno]
+        self.ref_data = self.fmri_data[self.ref_subno]
 
         # Save the reference subject and ref subject data
         np.savez_compressed(
-            self.data_dir + '/processed/Refdata.npz',
+            self.data_dir_fmri + '/processed/Refdata.npz',
             ref_data=self.ref_data,
             ref_subno=self.ref_subno)
 
@@ -311,7 +311,7 @@ class CogPred(BaseEstimator, bfpData):
             print(
                 '=======\n Reference subject is not initialized, loading from a file\n=======\n'
             )
-            a = np.load(self.data_dir + '/processed/Refdata.npz')
+            a = np.load(self.data_dir_fmri + '/processed/Refdata.npz')
             self.ref_subno = a['ref_subno']
             self.ref_data = a['ref_data']
 
@@ -319,10 +319,10 @@ class CogPred(BaseEstimator, bfpData):
         ref = StandardScaler().fit_transform(self.ref_data.T)
 
         for subno in range(len(self.subids)):
-            sub = self.data[subno]
+            sub = self.fmri_data[subno]
             sub = StandardScaler().fit_transform(sub.T)  # .T to make data TxV
             sub_sync, _ = brainSync(ref, sub)
-            self.data[subno] = sub_sync.T
+            self.fmri_data[subno] = sub_sync.T
 
     def train_model(self, data_dir, csv_file):
         """ data dir and csv file as input"""
@@ -330,13 +330,15 @@ class CogPred(BaseEstimator, bfpData):
         print('Fitting the model')
 
         self.read_fmri(data_dir, reduce_dim=21)
-        rep_file = self.data_dir + '/processed/Refdata.npz'
+        rep_file = self.data_dir_fmri + '/processed/Refdata.npz'
         if not os.path.isfile(rep_file):
             print('===Representative subject not chosen\n Doing that now ==')
             self.choose_rep()
 
         self.sync2rep()
         self.read_cog_scores(csv_file)
+        self.read_shape(os.path.dirname(data_dir) + '/SCT')
+        self.concat_shape_fmri()
         self.map_gord2sqrs()
 
         model_checkpoint = ModelCheckpoint(
@@ -380,7 +382,7 @@ class CogPred(BaseEstimator, bfpData):
             X,
             y,
             batch_size=5,
-            epochs=50,
+            epochs=20,
             verbose=1,
             shuffle=True,
             validation_split=0.2,
@@ -407,8 +409,12 @@ class CogPred(BaseEstimator, bfpData):
         self.hybrid_cnn.load_weights('weights3d_epochs50_batch5.h5')
 
         self.read_fmri(data_dir, reduce_dim=21)
+
         self.sync2rep()
         self.read_cog_scores(csv_file)
+        self.read_shape(os.path.dirname(data_dir) + '/SCT')
+        self.concat_shape_fmri()
+
         self.map_gord2sqrs()
         X = [
             self.nn_ipdata[0].astype('float32'),
@@ -431,12 +437,12 @@ class CogPred(BaseEstimator, bfpData):
 
         return y, ypred
 
-    def get_neural_net(self, isize=[256, 256], subc_size=31870):
+    def get_neural_net(self, isize=[128, 128], subc_size=31870):
         """VGG model with one FC layer added at the end for continuous output"""
         lh_input, lh_out = get_mynet(isize, 'lh_')
         rh_input, rh_out = get_mynet(isize, 'rh_')
 
-        subco_input = Input(shape=(subc_size, 21), dtype='float32')
+        subco_input = Input(shape=(subc_size, 36), dtype='float32')
         fc = Flatten()(subco_input)
         subco_out = Dense(256, activation='relu')(fc)
 

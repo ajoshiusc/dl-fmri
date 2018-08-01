@@ -44,8 +44,12 @@ class bfpData():
         self.nvert_subcort = 31870
         self.data_dir = None
         self.subids = None
-        self.data = None
+        self.fmri_data = list()
+        self.shape_data = list()
+        self.data = list()
         self.dirlst = None
+        self.data_dir_sct = list()
+        self.data_dir_fmri = list()
         print("Read flat maps for left and right hemispheres.")
         dat = loadmat(
             os.path.join(bfp_dir, 'supp_data', 'USCBrain_grayord_labels.mat'))
@@ -53,15 +57,42 @@ class bfpData():
 
     def get_data(self):
         """get the rfMRI data"""
-        return self.data, self.cog_scores, self.subids
+        return self.fmri_data, self.shape_data, self.cog_scores, self.subids
+
+    def read_shape(self, data_dir):
+        """ Read SCT anatomical data from disk
+            Data is SCT multires x vertices x sub """
+        self.data_dir_sct = data_dir
+
+        for subid in self.subids:
+            sctfile = self.data_dir_sct + '/' + str(subid) + '_T1w.SCT.GOrd.mat'
+            a = loadmat(sctfile)
+            sct = a['SCT_GO']
+            print('Read sub SCT = ' + str(subid))
+            # Preprocess fMRI, replace Nan by avg of cortical activity at
+            # that time point and standardize this should be interesting
+            imp = Imputer(missing_values='NaN', strategy='mean', axis=0)
+            sct = imp.fit_transform(sct)
+            sct = StandardScaler().fit_transform(sct)
+
+            self.shape_data.append(sct)
+
+    def concat_shape_fmri(self):
+        """ Concatenate fmri and shape data """
+        for ind in range(len(self.subids)):
+            full_data = np.concatenate(
+                (self.fmri_data[ind], self.shape_data[ind]), axis=1)
+            self.data.append(full_data)
+            self.fmri_data[ind] = None
+            self.shape_data[ind] = None
 
     def read_fmri(self, data_dir, reduce_dim=None, int_subid=1, roiwise=1):
         """ Read fMRI data from disk
             If reduce_dim = None, no dimesionality reduction is performed
             data is Time x Vertices x sub"""
-        self.data_dir = data_dir
-        self.dirlst = glob.glob(self.data_dir + '/*.mat')
-        self.data = list()
+        self.data_dir_fmri = data_dir
+        self.dirlst = glob.glob(self.data_dir_fmri + '/*.mat')
+        self.fmri_data = list()
         self.subids = list()
 
         print('\n=======\n Reading fMRI data\n=======\n')
@@ -71,9 +102,9 @@ class bfpData():
 
         for subfile in self.dirlst:
             subid = subfile.replace('_rest_bold.32k.GOrd.mat', '')
-            subid = subid.replace(self.data_dir + '/', '')
+            subid = subid.replace(self.data_dir_fmri + '/', '')
 
-            outfile = self.data_dir + '/processed/' + subid + 'pca_reduced.npz'
+            outfile = self.data_dir_fmri + '/processed/' + subid + 'pca_reduced.npz'
 
             if int_subid:
                 subid = int(subid)
@@ -104,7 +135,7 @@ class bfpData():
                                                        self.gord_label)
 
             self.subids.append(subid)
-            self.data.append(fmri_data)
+            self.fmri_data.append(fmri_data)
 
     def read_cog_scores(self, cogscore_file):
         """ Read cognitive scores from csv file """
