@@ -381,11 +381,11 @@ class CogPred(BaseEstimator, bfpData):
         history = self.hybrid_cnn.fit(
             X,
             y,
-            batch_size=5,
-            epochs=50,
+            batch_size=2,
+            epochs=100,
             verbose=1,
             shuffle=True,
-            validation_split=0.2,
+            validation_split=0.5,
             callbacks=[model_checkpoint])
 
         print('=======\nSaving training history\n=======')

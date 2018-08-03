@@ -85,6 +85,11 @@ class bfpData():
             self.data.append(full_data)
             self.fmri_data[ind] = None
             self.shape_data[ind] = None
+            
+        self.fmri_data = list()
+        self.shape_data = list()
+
+
 
     def read_fmri(self, data_dir, reduce_dim=None, int_subid=1, roiwise=1):
         """ Read fMRI data from disk
