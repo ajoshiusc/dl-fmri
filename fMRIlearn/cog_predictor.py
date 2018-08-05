@@ -383,7 +383,7 @@ class CogPred(BaseEstimator, bfpData):
             X,
             y,
             batch_size=2,
-            epochs=10,
+            epochs=50,
             verbose=1,
             shuffle=True,
             validation_split=0.2,
