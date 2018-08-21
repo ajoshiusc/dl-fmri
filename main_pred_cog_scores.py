@@ -14,11 +14,11 @@ import fMRIlearn.cog_predictor as cpred
 
 def main():
     """ Main script that calls the functions object"""
-    bfp_dir = '/home/ajoshi/coding_ground/bfp'
-    train_data_dir = '/deneb_disk/ADHD_Peking_bfp/training'  #ADHD_Peking_bfp/training'
-    test_data_dir = '/deneb_disk/ADHD_Peking_bfp/testing'
+    bfp_dir = '/big_disk/ajoshi/coding_ground/bfp'
+    train_data_dir = '/big_disk/ajoshi/ADHD_Peking_bfp/training'  #ADHD_Peking_bfp/training'
+    test_data_dir = '/big_disk/ajoshi/ADHD_Peking_bfp/testing'
 
-    csv_file = '/deneb_disk/ADHD_Peking_bfp/Peking_all_phenotypic.csv'
+    csv_file = '/big_disk/ajoshi/ADHD_Peking_bfp/Peking_all_phenotypic.csv'
 
     cp = cpred.CogPred(bfp_dir)
 

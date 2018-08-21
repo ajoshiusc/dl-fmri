@@ -386,7 +386,7 @@ class CogPred(BaseEstimator, bfpData):
             epochs=50,
             verbose=1,
             shuffle=True,
-            validation_split=0.2,
+            validation_split=0.5,
             callbacks=[model_checkpoint])
 
         print('=======\nSaving training history\n=======')
