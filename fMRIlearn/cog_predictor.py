@@ -122,67 +122,67 @@ def get_myvgg(isize, namestr):
         shape=(isize[0], isize[1], 21),
         dtype='float32',
         name=namestr + 'main_input')
-    zpad1 = ZeroPadding2D(
-        (1, 1), input_shape=(isize[0], isize[1], 21),
-        name=namestr + 'zpad1')(main_input)
+    zpad1 = ZeroPadding2D((1, 1),
+                          input_shape=(isize[0], isize[1], 21),
+                          name=namestr + 'zpad1')(main_input)
     conv1 = Conv2D(
-        64, (3, 3), name=namestr + 'conv1', activation='relu')(zpad1)
+        32, (3, 3), name=namestr + 'conv1', activation='relu')(zpad1)
     zpad2 = ZeroPadding2D((1, 1), name=namestr + 'zpad2')(conv1)
     conv2 = Conv2D(
-        64, (3, 3), name=namestr + 'conv2', activation='relu')(zpad2)
+        32, (3, 3), name=namestr + 'conv2', activation='relu')(zpad2)
     maxp1 = MaxPooling2D((2, 2), strides=(2, 2), name=namestr + 'maxp1')(conv2)
 
     zpad3 = ZeroPadding2D((1, 1), name=namestr + 'zpad3')(maxp1)
     conv3 = Conv2D(
-        128, (3, 3), name=namestr + 'conv3', activation='relu')(zpad3)
+        64, (3, 3), name=namestr + 'conv3', activation='relu')(zpad3)
     zpad4 = ZeroPadding2D((1, 1), name=namestr + 'zpad4')(conv3)
     conv4 = Conv2D(
-        128, (3, 3), name=namestr + 'conv4', activation='relu')(zpad4)
+        64, (3, 3), name=namestr + 'conv4', activation='relu')(zpad4)
     maxp2 = MaxPooling2D((2, 2), strides=(2, 2), name=namestr + 'maxp2')(conv4)
 
     zpad5 = ZeroPadding2D((1, 1), name=namestr + 'zpad5')(maxp2)
     conv5 = Conv2D(
-        256, (3, 3), name=namestr + 'conv5', activation='relu')(zpad5)
+        128, (3, 3), name=namestr + 'conv5', activation='relu')(zpad5)
     zpad6 = ZeroPadding2D((1, 1), name=namestr + 'zpad6')(conv5)
     conv6 = Conv2D(
-        256, (3, 3), name=namestr + 'conv6', activation='relu')(zpad6)
+        128, (3, 3), name=namestr + 'conv6', activation='relu')(zpad6)
     zpad7 = ZeroPadding2D((1, 1), name=namestr + 'zpad7')(conv6)
     conv7 = Conv2D(
-        256, (3, 3), name=namestr + 'conv7', activation='relu')(zpad7)
+        128, (3, 3), name=namestr + 'conv7', activation='relu')(zpad7)
     maxp3 = MaxPooling2D((2, 2), strides=(2, 2), name=namestr + 'maxp3')(conv7)
 
     zpad8 = ZeroPadding2D((1, 1), name=namestr + 'zpad8')(maxp3)
     conv8 = Conv2D(
-        512, (3, 3), name=namestr + 'conv8', activation='relu')(zpad8)
+        256, (3, 3), name=namestr + 'conv8', activation='relu')(zpad8)
     zpad9 = ZeroPadding2D((1, 1), name=namestr + 'zpad9')(conv8)
     conv9 = Conv2D(
-        512, (3, 3), name=namestr + 'conv9', activation='relu')(zpad9)
+        256, (3, 3), name=namestr + 'conv9', activation='relu')(zpad9)
     zpad10 = ZeroPadding2D((1, 1), name=namestr + 'zpad10')(conv9)
     conv10 = Conv2D(
-        512, (3, 3), name=namestr + 'conv10', activation='relu')(zpad10)
-    maxp4 = MaxPooling2D(
-        (2, 2), strides=(2, 2), name=namestr + 'maxp4')(conv10)
+        256, (3, 3), name=namestr + 'conv10', activation='relu')(zpad10)
+    maxp4 = MaxPooling2D((2, 2), strides=(2, 2),
+                         name=namestr + 'maxp4')(conv10)
 
     zpad11 = ZeroPadding2D((1, 1), name=namestr + 'zpad11')(maxp4)
     conv11 = Conv2D(
-        512, (3, 3), name=namestr + 'conv11', activation='relu')(zpad11)
+        256, (3, 3), name=namestr + 'conv11', activation='relu')(zpad11)
     zpad12 = ZeroPadding2D((1, 1), name=namestr + 'zpad12')(conv11)
     conv12 = Conv2D(
-        512, (3, 3), name=namestr + 'conv12', activation='relu')(zpad12)
+        256, (3, 3), name=namestr + 'conv12', activation='relu')(zpad12)
     zpad13 = ZeroPadding2D((1, 1), name=namestr + 'zpad13')(conv12)
     conv13 = Conv2D(
-        512, (3, 3), name=namestr + 'conv13', activation='relu')(zpad13)
-    maxp5 = MaxPooling2D(
-        (2, 2), strides=(2, 2), name=namestr + 'maxp5')(conv13)
+        256, (3, 3), name=namestr + 'conv13', activation='relu')(zpad13)
+    maxp5 = MaxPooling2D((2, 2), strides=(2, 2),
+                         name=namestr + 'maxp5')(conv13)
 
     flatten = Flatten(name=namestr + 'flatten')(maxp5)
-    dense1 = Dense(4096, activation='relu', name=namestr + 'dense1')(flatten)
+    dense1 = Dense(2048, activation='relu', name=namestr + 'dense1')(flatten)
     dropout1 = Dropout(0.5, name=namestr + 'dropout1')(dense1)
-    dense2 = Dense(4096, activation='relu', name=namestr + 'dense2')(dropout1)
+    dense2 = Dense(2048, activation='relu', name=namestr + 'dense2')(dropout1)
     dropout2 = Dropout(0.5, name=namestr + 'dropout2')(dense2)
-    dense3 = Dense(1000, activation='relu', name=namestr + 'dense3')(dropout2)
+    dense3 = Dense(500, activation='relu', name=namestr + 'dense3')(dropout2)
     dropout3 = Dropout(0.5, name=namestr + 'dropout3')(dense3)
-    dense4 = Dense(256, activation='relu', name=namestr + 'dense4')(dropout3)
+    dense4 = Dense(128, activation='relu', name=namestr + 'dense4')(dropout3)
 
     # My addition of regression layer
 
@@ -386,7 +386,7 @@ class CogPred(BaseEstimator, bfpData):
             epochs=100,
             verbose=1,
             shuffle=True,
-            validation_split=0.5,
+            validation_split=0.4,
             callbacks=[model_checkpoint])
 
         print('=======\nSaving training history\n=======')
@@ -445,10 +445,10 @@ class CogPred(BaseEstimator, bfpData):
 
         subco_input = Input(shape=(subc_size, 36), dtype='float32')
         fc = Flatten()(subco_input)
-        subco_out = Dense(256, activation='relu')(fc)
+        subco_out = Dense(128, activation='relu')(fc)
 
         cc = concatenate([lh_out, rh_out, subco_out], axis=-1)
-        cc = Dense(64, activation='relu')(cc)
+        cc = Dense(32, activation='relu')(cc)
         out_theta = Dense(3)(cc)
 
         print("==Defining Model  ==")
